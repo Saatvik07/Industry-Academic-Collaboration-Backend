@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { OrganisationsService } from './organisations.service';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
@@ -45,8 +46,12 @@ export class OrganisationsController {
 
   @Get(':id')
   @ApiOkResponse({ type: OrganisationEntity })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.organisationsService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const org = await this.organisationsService.findOne(id);
+    if (!org) {
+      throw new NotFoundException(`Organisation with id ${id} not found`);
+    }
+    return org;
   }
 
   @Patch(':id')
@@ -55,12 +60,12 @@ export class OrganisationsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateOrganisationDto: UpdateOrganisationDto,
   ) {
-    return this.organisationsService.update(+id, updateOrganisationDto);
+    return this.organisationsService.update(id, updateOrganisationDto);
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: OrganisationEntity })
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.organisationsService.remove(+id);
+    return this.organisationsService.remove(id);
   }
 }
