@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role, OrgType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -8,6 +8,8 @@ async function main() {
     update: {},
     create: {
       name: 'Indraprastha Institute of Information Technology Delhi',
+      location: 'Delhi, India',
+      type: OrgType.ACADEMIC,
     },
   });
   const adminUser = await prisma.user.upsert({
@@ -19,7 +21,7 @@ async function main() {
       lastName: 'Doe',
       password: 'password123',
       role: Role.ADMIN,
-      orgId: 1,
+      orgId: 2,
     },
   });
   console.log(organizations, adminUser);

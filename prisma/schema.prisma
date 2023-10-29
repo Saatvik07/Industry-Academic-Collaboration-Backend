@@ -19,6 +19,10 @@ enum Role {
   ACADEMIC_STUDENT
 }
 
+enum OrgType {
+  INDUSTRY
+  ACADEMIC
+}
 
 model User {
   userId Int @id @default(autoincrement())
@@ -37,5 +41,6 @@ model Organization {
   id Int @id @default(autoincrement())
   name String @unique
   users User[]
-  location String?
+  type OrgType @default(ACADEMIC)
+  location String
 }
