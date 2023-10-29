@@ -9,7 +9,9 @@ export class OrganisationsService {
   constructor(private prisma: PrismaService) {}
 
   create(createOrganisationDto: CreateOrganisationDto) {
-    return 'This action adds a new organisation';
+    return this.prisma.organization.create({
+      data: createOrganisationDto,
+    });
   }
 
   findAll() {
