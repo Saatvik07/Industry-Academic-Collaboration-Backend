@@ -58,10 +58,15 @@ export class OrganisationsService {
   }
 
   update(id: number, updateOrganisationDto: UpdateOrganisationDto) {
-    return `This action updates a #${id} organisation`;
+    return this.prisma.organization.update({
+      where: { id },
+      data: updateOrganisationDto,
+    });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} organisation`;
+    return this.prisma.organization.delete({
+      where: { id },
+    });
   }
 }

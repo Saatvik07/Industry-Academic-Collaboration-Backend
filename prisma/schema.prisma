@@ -31,7 +31,7 @@ model User {
   email String @unique
   password String
   createAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @default(now())
   role Role @default(ACADEMIC_USER)
   organization Organization? @relation(fields: [orgId], references: [id])
   isPoc Boolean @default(false)
@@ -43,5 +43,7 @@ model Organization {
   name String @unique
   type OrgType @default(ACADEMIC)
   location String
+  createAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   users User[]
 }
