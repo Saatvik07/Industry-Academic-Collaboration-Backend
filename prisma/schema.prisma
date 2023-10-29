@@ -34,13 +34,14 @@ model User {
   updatedAt DateTime @updatedAt
   role Role @default(ACADEMIC_USER)
   organization Organization? @relation(fields: [orgId], references: [id])
+  isPoc Boolean @default(false)
   orgId Int?
 }
 
 model Organization {
   id Int @id @default(autoincrement())
   name String @unique
-  users User[]
   type OrgType @default(ACADEMIC)
   location String
+  users User[]
 }
