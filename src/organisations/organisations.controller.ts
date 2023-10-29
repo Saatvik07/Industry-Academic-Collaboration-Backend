@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { OrganisationsService } from './organisations.service';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
@@ -44,14 +45,14 @@ export class OrganisationsController {
 
   @Get(':id')
   @ApiOkResponse({ type: OrganisationEntity })
-  findOne(@Param('id') id: string) {
-    return this.organisationsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.organisationsService.findOne(id);
   }
 
   @Patch(':id')
   @ApiOkResponse({ type: OrganisationEntity })
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateOrganisationDto: UpdateOrganisationDto,
   ) {
     return this.organisationsService.update(+id, updateOrganisationDto);
@@ -59,7 +60,7 @@ export class OrganisationsController {
 
   @Delete(':id')
   @ApiOkResponse({ type: OrganisationEntity })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.organisationsService.remove(+id);
   }
 }
