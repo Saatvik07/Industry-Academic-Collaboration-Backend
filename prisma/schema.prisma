@@ -37,4 +37,5 @@ model Organization {
   id Int @id @default(autoincrement())
   name String @unique
   users User[]
+  location String?
 }
