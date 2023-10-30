@@ -33,8 +33,8 @@ model User {
   createAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now())
   role Role @default(ACADEMIC_USER)
-  organization Organization? @relation(fields: [orgId], references: [id])
-  orgId Int?
+  organization Organization @relation(fields: [orgId], references: [id])
+  orgId Int
   isPoc Boolean @default(false)
   isVerified Boolean @default(false)
 }
