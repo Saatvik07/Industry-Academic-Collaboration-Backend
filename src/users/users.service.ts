@@ -68,16 +68,30 @@ export class UsersService {
   async createPOCUser(createPOCUserDto: CreatePOCUserDto) {
     const password = generateRandomString(8);
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('Password', password);
-    const user = {
+    let user;
+    const pocUser = {
       ...createPOCUserDto,
       password: hashedPassword,
       isPoc: true,
       isVerified: true,
+      isEmailVerified: true,
     };
-    return this.prisma.user.create({
-      data: user,
-    });
+    try {
+      user = this.prisma.user.create({
+        data: pocUser,
+      });
+    } catch (error) {
+      throw new ForbiddenException(error);
+    } finally {
+      const result = await this.mailerService.sendPlatformInvitation({
+        email: createPOCUserDto.email,
+        firstName: createPOCUserDto.firstName,
+        lastName: createPOCUserDto.lastName,
+        password,
+      });
+      if (result.success) return user;
+      else throw new InternalServerErrorException('Cannot send email');
+    }
   }
 
   findAll() {
