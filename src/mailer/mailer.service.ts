@@ -46,28 +46,24 @@ export class MailerService {
     return Handlebars.compile<TemplateType>(templateText, { strict: true });
   }
 
-  public sendEmail(
-    to: string,
-    subject: string,
-    html: string,
-    log?: string,
-  ): void {
-    this.transport
+  public sendEmail(to: string, subject: string, html: string, log?: string) {
+    return this.transport
       .sendMail({
         from: this.email,
         to,
         subject,
         html,
       })
-      .then(() =>
+      .then(() => {
         this.loggerService.log(
           log ?? `Email sent to ${to}, subject:${subject}`,
-        ),
-      )
+        );
+        return { success: true };
+      })
       .catch((error) => this.loggerService.error(error));
   }
 
-  public sendConfirmationEmail(user: IUser, token: string): void {
+  public sendConfirmationEmail(user: IUser, token: string) {
     const { email, firstName, lastName } = user;
     const subject = 'Confirm your email';
     const html = this.templates.confirmation({
@@ -75,7 +71,7 @@ export class MailerService {
       lastName,
       url: `https://${this.domain}/auth/confirm/${token}`,
     });
-    this.sendEmail(
+    return this.sendEmail(
       email,
       subject,
       html,
@@ -83,7 +79,7 @@ export class MailerService {
     );
   }
 
-  public sendResetPasswordEmail(user: IUser, token: string): void {
+  public sendResetPasswordEmail(user: IUser, token: string) {
     const { email, firstName, lastName } = user;
     const subject = 'Reset your password';
     const html = this.templates.resetPassword({
@@ -91,7 +87,7 @@ export class MailerService {
       lastName,
       url: `https://${this.domain}/auth/reset-password/${token}`,
     });
-    this.sendEmail(
+    return this.sendEmail(
       email,
       subject,
       html,
@@ -99,7 +95,7 @@ export class MailerService {
     );
   }
 
-  public sendPlatformInvitation(user: IUserInvitation): void {
+  public sendPlatformInvitation(user: IUserInvitation) {
     const { email, firstName, lastName, password } = user;
     const subject =
       'You have been invited to Industry-Academic Collaboration Platform';
@@ -110,7 +106,7 @@ export class MailerService {
       email,
       url: `https://${this.domain}/login`,
     });
-    this.sendEmail(
+    return this.sendEmail(
       email,
       subject,
       html,

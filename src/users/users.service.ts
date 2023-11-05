@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreatePOCUserDto, CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -6,6 +11,7 @@ import { generateRandomString } from './users.utils';
 import * as bcrypt from 'bcrypt';
 import { MailerService } from 'src/mailer/mailer.service';
 import { JwtService } from '@nestjs/jwt';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -14,14 +20,27 @@ export class UsersService {
     private mailerService: MailerService,
   ) {}
 
+  public comparePasswords(password1: string, password2: string): void {
+    if (password1 !== password2) {
+      throw new BadRequestException('Passwords do not match');
+    }
+  }
   async createUser(createUserDto: CreateUserDto) {
-    const password = createUserDto.password;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    createUserDto.password = hashedPassword;
+    const { password1, password, firstName, lastName, orgId, role, email } =
+      createUserDto;
+    this.comparePasswords(password1, password);
+    const hashedPassword = await bcrypt.hash(password1, 10);
     let user;
     try {
       user = this.prisma.user.create({
-        data: createUserDto,
+        data: {
+          firstName,
+          lastName,
+          orgId,
+          role,
+          email,
+          password: hashedPassword,
+        },
       });
     } catch (error) {
       throw new ForbiddenException(error);
@@ -34,7 +53,7 @@ export class UsersService {
           expiresIn: '60m',
         },
       );
-      this.mailerService.sendConfirmationEmail(
+      const result = await this.mailerService.sendConfirmationEmail(
         {
           email: createUserDto.email,
           firstName: createUserDto.firstName,
@@ -42,22 +61,37 @@ export class UsersService {
         },
         confirmationToken,
       );
-      return user;
+      if (result.success) return user;
+      else throw new InternalServerErrorException('Cannot send email');
     }
   }
   async createPOCUser(createPOCUserDto: CreatePOCUserDto) {
     const password = generateRandomString(8);
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('Password', password);
-    const user = {
+    let user;
+    const pocUser = {
       ...createPOCUserDto,
       password: hashedPassword,
       isPoc: true,
       isVerified: true,
+      isEmailVerified: true,
     };
-    return this.prisma.user.create({
-      data: user,
-    });
+    try {
+      user = this.prisma.user.create({
+        data: pocUser,
+      });
+    } catch (error) {
+      throw new ForbiddenException(error);
+    } finally {
+      const result = await this.mailerService.sendPlatformInvitation({
+        email: createPOCUserDto.email,
+        firstName: createPOCUserDto.firstName,
+        lastName: createPOCUserDto.lastName,
+        password,
+      });
+      if (result.success) return user;
+      else throw new InternalServerErrorException('Cannot send email');
+    }
   }
 
   findAll() {
@@ -73,10 +107,19 @@ export class UsersService {
     });
   }
 
+  findEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+  }
+
   async update(userId: number, updateUserDto: UpdateUserDto) {
-    if (updateUserDto.password) {
-      const hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
+    if (updateUserDto.password1) {
+      const hashedPassword = await bcrypt.hash(updateUserDto.password1, 10);
       updateUserDto.password = hashedPassword;
+      delete updateUserDto.password1;
     }
     return this.prisma.user.update({
       where: { userId },

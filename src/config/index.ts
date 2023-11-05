@@ -3,7 +3,7 @@ import { IConfig } from './interfaces/config.interface';
 export function config(): IConfig {
   return {
     port: parseInt(process.env.PORT, 10),
-    domain: process.env.DOMAIN,
+    domain: process.env.FRONTEND_DOMAIN,
     emailService: {
       host: process.env.EMAIL_HOST,
       port: parseInt(process.env.EMAIL_PORT, 10),

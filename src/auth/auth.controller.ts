@@ -1,11 +1,22 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AuthBaseEntity, AuthEntity } from './entity/auth.entity';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { AuthBaseEntity } from './entity/auth.entity';
 import { Request, Response } from 'express';
 import { LoginDto } from './dto/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { ICookieConfig } from 'src/config/interfaces/cookie-config.interface';
+import { UserEntity } from 'src/users/entities/user.entity';
+import { EmailDto } from './dto/email.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ConfirmEmailDto } from './dto/confirm-email.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -20,7 +31,7 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiOkResponse({ type: AuthEntity })
+  @ApiCreatedResponse({ type: AuthBaseEntity })
   async login(
     @Body() { email, password }: LoginDto,
     @Res({ passthrough: true }) response: Response,
@@ -40,5 +51,25 @@ export class AuthController {
   async getAccessToken(@Req() req: Request) {
     const refreshToken = req.cookies[this.refreshCookieName];
     return this.authService.getAccesssToken(refreshToken);
+  }
+
+  @Post('confirmEmail')
+  @ApiOkResponse({ type: UserEntity })
+  async confirmEmail(@Body() { confirmationToken }: ConfirmEmailDto) {
+    return this.authService.confirmEmail(confirmationToken);
+  }
+
+  @Post('sendResetPasswordEmail')
+  @ApiOkResponse()
+  async resetPasswordEmail(@Body() emailDto: EmailDto) {
+    const response = await this.authService.sendResetPasswordEmail(emailDto);
+    if (response.success) return response;
+    throw new BadRequestException('Cannot send mail');
+  }
+
+  @Post('resetPassword')
+  @ApiOkResponse({ type: UserEntity })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }
