@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreatePOCUserDto, CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -34,7 +38,7 @@ export class UsersService {
           expiresIn: '60m',
         },
       );
-      this.mailerService.sendConfirmationEmail(
+      const result = await this.mailerService.sendConfirmationEmail(
         {
           email: createUserDto.email,
           firstName: createUserDto.firstName,
@@ -42,7 +46,8 @@ export class UsersService {
         },
         confirmationToken,
       );
-      return user;
+      if (result.success) return user;
+      else throw new InternalServerErrorException('Cannot send email');
     }
   }
   async createPOCUser(createPOCUserDto: CreatePOCUserDto) {

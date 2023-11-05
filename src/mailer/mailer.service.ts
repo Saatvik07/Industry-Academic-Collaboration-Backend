@@ -46,28 +46,24 @@ export class MailerService {
     return Handlebars.compile<TemplateType>(templateText, { strict: true });
   }
 
-  public sendEmail(
-    to: string,
-    subject: string,
-    html: string,
-    log?: string,
-  ): void {
-    this.transport
+  public sendEmail(to: string, subject: string, html: string, log?: string) {
+    return this.transport
       .sendMail({
         from: this.email,
         to,
         subject,
         html,
       })
-      .then(() =>
+      .then(() => {
         this.loggerService.log(
           log ?? `Email sent to ${to}, subject:${subject}`,
-        ),
-      )
+        );
+        return { success: true };
+      })
       .catch((error) => this.loggerService.error(error));
   }
 
-  public sendConfirmationEmail(user: IUser, token: string): void {
+  public sendConfirmationEmail(user: IUser, token: string) {
     const { email, firstName, lastName } = user;
     const subject = 'Confirm your email';
     const html = this.templates.confirmation({
@@ -75,7 +71,7 @@ export class MailerService {
       lastName,
       url: `https://${this.domain}/auth/confirm/${token}`,
     });
-    this.sendEmail(
+    return this.sendEmail(
       email,
       subject,
       html,
