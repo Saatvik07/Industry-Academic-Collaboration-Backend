@@ -38,4 +38,7 @@ export class UserEntity implements User {
 
   @ApiProperty({ default: false })
   isVerified: boolean;
+
+  @ApiProperty({ default: false })
+  isEmailVerified: boolean;
 }

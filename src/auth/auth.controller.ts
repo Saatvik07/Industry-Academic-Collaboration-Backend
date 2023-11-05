@@ -4,11 +4,20 @@ import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthBaseEntity, AuthEntity } from './entity/auth.entity';
 import { Request, Response } from 'express';
 import { LoginDto } from './dto/login.dto';
+import { ConfigService } from '@nestjs/config';
+import { ICookieConfig } from 'src/config/interfaces/cookie-config.interface';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  private readonly refreshCookieName;
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {
+    const cookieConfig = this.configService.get<ICookieConfig>('cookie');
+    this.refreshCookieName = cookieConfig.cookieName;
+  }
 
   @Post('login')
   @ApiOkResponse({ type: AuthEntity })
@@ -18,7 +27,7 @@ export class AuthController {
   ) {
     const tokens = await this.authService.login(email, password);
     response
-      .cookie(process.env.REFRESH_COOKIE, tokens.refreshToken, {
+      .cookie(this.refreshCookieName, tokens.refreshToken, {
         httpOnly: true,
       })
       .json({
@@ -29,7 +38,7 @@ export class AuthController {
   @Post('getAccessToken')
   @ApiOkResponse({ type: AuthBaseEntity })
   async getAccessToken(@Req() req: Request) {
-    const refreshToken = req.cookies[process.env.REFRESH_COOKIE];
+    const refreshToken = req.cookies[this.refreshCookieName];
     return this.authService.getAccesssToken(refreshToken);
   }
 }

@@ -7,12 +7,19 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthBaseEntity, AuthEntity } from './entity/auth.entity';
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
+import { IJwtConfig } from 'src/config/interfaces/jwt-config.interface';
 @Injectable()
 export class AuthService {
+  private readonly jwtSecret: string;
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    const jwtConfig = this.configService.get<IJwtConfig>('jwt');
+    this.jwtSecret = jwtConfig.jwtSecret;
+  }
   async login(email: string, password: string): Promise<AuthEntity> {
     const user = await this.prisma.user.findUnique({
       where: {
@@ -42,9 +49,8 @@ export class AuthService {
   }
 
   async getAccesssToken(refreshToken: string): Promise<AuthBaseEntity> {
-    console.log(refreshToken);
     const { email } = this.jwtService.verify(refreshToken, {
-      secret: process.env.JWT_SECRET,
+      secret: this.jwtSecret,
     });
 
     const user = await this.prisma.user.findUnique({

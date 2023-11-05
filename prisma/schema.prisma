@@ -37,6 +37,7 @@ model User {
   orgId Int
   isPoc Boolean @default(false)
   isVerified Boolean @default(false)
+  isEmailVerified Boolean @default(false)
 }
 
 model Organization {
