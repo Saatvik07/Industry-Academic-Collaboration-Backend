@@ -6,6 +6,7 @@ import { IEmailConfig } from 'src/config/interfaces/email-config.interface';
 import { ITemplateData } from './interfaces/template-data.interface';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import Handlebars from 'handlebars';
 import { ITemplates } from './interfaces/templates.interface';
 import { IUser, IUserInvitation } from 'src/users/interfaces/user.interface';
 
@@ -39,7 +40,7 @@ export class MailerService {
     templateName: string,
   ): Handlebars.TemplateDelegate<TemplateType> {
     const templateText = readFileSync(
-      join(__dirname, 'templates', templateName),
+      join(__dirname, '../../mailer/templates', templateName),
       'utf-8',
     );
     return Handlebars.compile<TemplateType>(templateText, { strict: true });

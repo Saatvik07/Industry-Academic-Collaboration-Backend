@@ -49,7 +49,6 @@ export class AuthService {
   }
 
   async getAccesssToken(refreshToken: string): Promise<AuthBaseEntity> {
-    console.log(refreshToken);
     const { email } = this.jwtService.verify(refreshToken, {
       secret: this.jwtSecret,
     });
