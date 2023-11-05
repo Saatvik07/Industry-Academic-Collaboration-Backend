@@ -79,7 +79,7 @@ export class MailerService {
     );
   }
 
-  public sendResetPasswordEmail(user: IUser, token: string): void {
+  public sendResetPasswordEmail(user: IUser, token: string) {
     const { email, firstName, lastName } = user;
     const subject = 'Reset your password';
     const html = this.templates.resetPassword({
@@ -87,7 +87,7 @@ export class MailerService {
       lastName,
       url: `https://${this.domain}/auth/reset-password/${token}`,
     });
-    this.sendEmail(
+    return this.sendEmail(
       email,
       subject,
       html,
@@ -95,7 +95,7 @@ export class MailerService {
     );
   }
 
-  public sendPlatformInvitation(user: IUserInvitation): void {
+  public sendPlatformInvitation(user: IUserInvitation) {
     const { email, firstName, lastName, password } = user;
     const subject =
       'You have been invited to Industry-Academic Collaboration Platform';
@@ -106,7 +106,7 @@ export class MailerService {
       email,
       url: `https://${this.domain}/login`,
     });
-    this.sendEmail(
+    return this.sendEmail(
       email,
       subject,
       html,

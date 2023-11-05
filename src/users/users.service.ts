@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -10,6 +11,7 @@ import { generateRandomString } from './users.utils';
 import * as bcrypt from 'bcrypt';
 import { MailerService } from 'src/mailer/mailer.service';
 import { JwtService } from '@nestjs/jwt';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -18,14 +20,27 @@ export class UsersService {
     private mailerService: MailerService,
   ) {}
 
+  public comparePasswords(password1: string, password2: string): void {
+    if (password1 !== password2) {
+      throw new BadRequestException('Passwords do not match');
+    }
+  }
   async createUser(createUserDto: CreateUserDto) {
-    const password = createUserDto.password;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    createUserDto.password = hashedPassword;
+    const { password1, password, firstName, lastName, orgId, role, email } =
+      createUserDto;
+    this.comparePasswords(password1, password);
+    const hashedPassword = await bcrypt.hash(password1, 10);
     let user;
     try {
       user = this.prisma.user.create({
-        data: createUserDto,
+        data: {
+          firstName,
+          lastName,
+          orgId,
+          role,
+          email,
+          password: hashedPassword,
+        },
       });
     } catch (error) {
       throw new ForbiddenException(error);
@@ -78,10 +93,19 @@ export class UsersService {
     });
   }
 
+  findEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+  }
+
   async update(userId: number, updateUserDto: UpdateUserDto) {
-    if (updateUserDto.password) {
-      const hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
+    if (updateUserDto.password1) {
+      const hashedPassword = await bcrypt.hash(updateUserDto.password1, 10);
       updateUserDto.password = hashedPassword;
+      delete updateUserDto.password1;
     }
     return this.prisma.user.update({
       where: { userId },
