@@ -8,6 +8,10 @@ import { AuthModule } from './auth/auth.module';
 import { MailerModule } from './mailer/mailer.module';
 import { ConfigModule } from '@nestjs/config';
 import { config } from './config';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/guards/auth.guard';
+import { JwtModule } from '@nestjs/jwt';
+import { RolesGuard } from './auth/guards/role.guard';
 
 @Module({
   imports: [
@@ -20,8 +24,19 @@ import { config } from './config';
     UsersModule,
     AuthModule,
     MailerModule,
+    JwtModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    AppService,
+  ],
 })
 export class AppModule {}
