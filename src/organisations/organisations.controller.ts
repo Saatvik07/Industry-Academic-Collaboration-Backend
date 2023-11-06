@@ -54,6 +54,19 @@ export class OrganisationsController {
     return org;
   }
 
+  @Get('members/:id')
+  @ApiOkResponse({ type: OrganisationEntity })
+  async findUnverifiedOrganizationMembers(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const org =
+      await this.organisationsService.findUnverifiedOrganizationMembers(id);
+    if (!org) {
+      throw new NotFoundException(`Organisation with id ${id} not found`);
+    }
+    return org;
+  }
+
   @Patch(':id')
   @ApiOkResponse({ type: OrganisationEntity })
   update(

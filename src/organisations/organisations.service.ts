@@ -53,6 +53,33 @@ export class OrganisationsService {
     });
   }
 
+  findUnverifiedOrganizationMembers(orgId: number) {
+    return this.prisma.organization.findMany({
+      where: {
+        id: orgId,
+      },
+      select: {
+        _count: {
+          select: {
+            users: {
+              where: {
+                isVerified: false,
+              },
+            },
+          },
+        },
+        users: {
+          where: {
+            isVerified: false,
+          },
+          orderBy: {
+            createAt: 'desc',
+          },
+        },
+      },
+    });
+  }
+
   findOne(id: number) {
     return this.prisma.organization.findUnique({ where: { id } });
   }
