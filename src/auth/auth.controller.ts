@@ -9,7 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthBaseEntity } from './entity/auth.entity';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { LoginDto } from './dto/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { ICookieConfig } from 'src/config/interfaces/cookie-config.interface';
@@ -17,6 +17,8 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { EmailDto } from './dto/email.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ConfirmEmailDto } from './dto/confirm-email.dto';
+import { Public } from './decorators/public.decorator';
+import { Request } from 'express-serve-static-core';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -31,6 +33,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Public()
   @ApiCreatedResponse({ type: AuthBaseEntity })
   async login(
     @Body() { email, password }: LoginDto,

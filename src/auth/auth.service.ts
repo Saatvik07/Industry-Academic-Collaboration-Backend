@@ -33,6 +33,7 @@ export class AuthService {
       const confirmationToken = this.jwtService.sign(
         {
           email: user.email,
+          id: user.userId,
         },
         {
           expiresIn: '60m',
