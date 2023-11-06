@@ -21,6 +21,7 @@ import { Public } from './decorators/public.decorator';
 import { Request } from 'express-serve-static-core';
 
 @Controller('auth')
+@Public()
 @ApiTags('auth')
 export class AuthController {
   private readonly refreshCookieName;
@@ -33,7 +34,6 @@ export class AuthController {
   }
 
   @Post('login')
-  @Public()
   @ApiCreatedResponse({ type: AuthBaseEntity })
   async login(
     @Body() { email, password }: LoginDto,

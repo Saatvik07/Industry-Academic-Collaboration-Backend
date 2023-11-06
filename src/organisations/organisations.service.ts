@@ -3,10 +3,14 @@ import { CreateOrganisationDto } from './dto/create-organisation.dto';
 import { UpdateOrganisationDto } from './dto/update-organisation.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OrgType } from '@prisma/client';
-
+import { UsersService } from 'src/users/users.service';
+import _map from 'lodash/map';
 @Injectable()
 export class OrganisationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private userService: UsersService,
+  ) {}
 
   create(createOrganisationDto: CreateOrganisationDto) {
     return this.prisma.organization.create({
@@ -54,7 +58,7 @@ export class OrganisationsService {
   }
 
   findUnverifiedOrganizationMembers(orgId: number) {
-    return this.prisma.organization.findMany({
+    return this.prisma.organization.findUnique({
       where: {
         id: orgId,
       },
@@ -78,6 +82,70 @@ export class OrganisationsService {
         },
       },
     });
+  }
+
+  findVerifiedOrganizationMembers(orgId: number) {
+    return this.prisma.organization.findUnique({
+      where: {
+        id: orgId,
+      },
+      select: {
+        _count: {
+          select: {
+            users: {
+              where: {
+                isVerified: true,
+              },
+            },
+          },
+        },
+        users: {
+          where: {
+            isVerified: true,
+          },
+          orderBy: {
+            createAt: 'desc',
+          },
+        },
+      },
+    });
+  }
+
+  findOrganizationPOC(orgId: number) {
+    return this.prisma.organization.findUnique({
+      where: {
+        id: orgId,
+      },
+      select: {
+        _count: {
+          select: {
+            users: {
+              where: {
+                isPoc: true,
+              },
+            },
+          },
+        },
+        users: {
+          where: {
+            isPoc: true,
+          },
+          orderBy: {
+            createAt: 'desc',
+          },
+        },
+      },
+    });
+  }
+
+  verifyOrganizationMembers(memberIds: Array<number>) {
+    return Promise.all(
+      _map(memberIds, (memberId) => {
+        return this.userService.update(memberId, {
+          isVerified: true,
+        });
+      }),
+    );
   }
 
   findOne(id: number) {

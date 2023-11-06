@@ -8,17 +8,26 @@ import {
   Delete,
   ParseIntPipe,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { OrganisationsService } from './organisations.service';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
 import { UpdateOrganisationDto } from './dto/update-organisation.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { OrganisationEntity } from './entities/organisation.entity';
-
+import { Roles } from 'src/auth/decorators/role.decorator';
+import { Role, User } from '@prisma/client';
+import { UserEntity } from 'src/users/entities/user.entity';
+import _map from 'lodash/map';
+import { VerifyMemberDto } from './dto/verify-member.dto';
 @Controller('organisations')
 @ApiTags('organisations')
 export class OrganisationsController {
   constructor(private readonly organisationsService: OrganisationsService) {}
+
+  private mapResponseToUserEntity(users: Array<User>) {
+    return _map(users, (user) => new UserEntity(user));
+  }
 
   @Post()
   @ApiCreatedResponse({ type: OrganisationEntity })
@@ -54,7 +63,8 @@ export class OrganisationsController {
     return org;
   }
 
-  @Get('members/:id')
+  @Get('members/unverified/:id')
+  @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.INDUSTRY_REP])
   @ApiOkResponse({ type: OrganisationEntity })
   async findUnverifiedOrganizationMembers(
     @Param('id', ParseIntPipe) id: number,
@@ -64,7 +74,60 @@ export class OrganisationsController {
     if (!org) {
       throw new NotFoundException(`Organisation with id ${id} not found`);
     }
+    if (org._count) {
+      org.users = this.mapResponseToUserEntity(org.users);
+    }
     return org;
+  }
+
+  @Get('members/verified/:id')
+  @Roles([
+    Role.ADMIN,
+    Role.ACADEMIC_REP,
+    Role.INDUSTRY_REP,
+    Role.ACADEMIC_USER,
+    Role.INDUSTRY_USER,
+  ])
+  @ApiOkResponse({ type: OrganisationEntity })
+  async findVerifiedOrganizationMembers(@Param('id', ParseIntPipe) id: number) {
+    const org =
+      await this.organisationsService.findVerifiedOrganizationMembers(id);
+    if (!org) {
+      throw new NotFoundException(`Organisation with id ${id} not found`);
+    }
+    if (org._count) {
+      org.users = this.mapResponseToUserEntity(org.users);
+    }
+    return org;
+  }
+
+  @Get('members/representative/:id')
+  @Roles([Role.ADMIN])
+  @ApiOkResponse({ type: OrganisationEntity })
+  async findOrganizationPOC(@Param('id', ParseIntPipe) id: number) {
+    const org = await this.organisationsService.findOrganizationPOC(id);
+    if (!org) {
+      throw new NotFoundException(`Organisation with id ${id} not found`);
+    }
+    if (org._count) {
+      org.users = this.mapResponseToUserEntity(org.users);
+    }
+    return org;
+  }
+
+  @Post()
+  @ApiOkResponse({ type: Array<UserEntity> })
+  async verifyOrganizationMembers(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() verifyMemberDto: VerifyMemberDto,
+  ) {
+    const users = await this.organisationsService.verifyOrganizationMembers(
+      verifyMemberDto.memberIds,
+    );
+    if (users.length) {
+      return this.mapResponseToUserEntity(users);
+    }
+    throw new InternalServerErrorException('Error in verifying member IDs');
   }
 
   @Patch(':id')
