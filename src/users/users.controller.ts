@@ -56,30 +56,6 @@ export class UsersController {
     return users.map((user) => new UserEntity(user));
   }
 
-  @Get(':id')
-  @ApiBearerAuth()
-  @Roles([Role.ADMIN])
-  @ApiOkResponse({ type: UserEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return new UserEntity(await this.usersService.findOne(id));
-  }
-
-  @Get('/details')
-  @ApiBearerAuth()
-  @Roles([
-    'ADMIN',
-    'ACADEMIC_REP',
-    'INDUSTRY_REP',
-    'ACADEMIC_USER',
-    'INDUSTRY_USER',
-    'ACADEMIC_STUDENT',
-  ])
-  @ApiOkResponse({ type: UserEntity })
-  async getUserDetails(@Req() req: Request) {
-    const { userId } = req.user;
-    return new UserEntity(await this.usersService.findOne(userId));
-  }
-
   @Get('/areasOfInterest')
   @ApiBearerAuth()
   @Roles([
@@ -91,6 +67,7 @@ export class UsersController {
     'ACADEMIC_STUDENT',
   ])
   async findUserAreasOfInterest(@Req() req: Request) {
+    console.log(req.user);
     const { userId } = req.user;
     return new UserEntity(await this.usersService.findAreasOfInterest(userId));
   }
@@ -116,6 +93,30 @@ export class UsersController {
         addAreaofInterestDto.areaOfInterestIds,
       ),
     );
+  }
+
+  @Get(':id')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  @ApiOkResponse({ type: UserEntity })
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return new UserEntity(await this.usersService.findOne(id));
+  }
+
+  @Get('/details')
+  @ApiBearerAuth()
+  @Roles([
+    'ADMIN',
+    'ACADEMIC_REP',
+    'INDUSTRY_REP',
+    'ACADEMIC_USER',
+    'INDUSTRY_USER',
+    'ACADEMIC_STUDENT',
+  ])
+  @ApiOkResponse({ type: UserEntity })
+  async getUserDetails(@Req() req: Request) {
+    const { userId } = req.user;
+    return new UserEntity(await this.usersService.findOne(userId));
   }
 
   @Patch(':id')
