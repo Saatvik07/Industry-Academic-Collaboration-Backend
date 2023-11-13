@@ -62,7 +62,7 @@ export class AuthService {
           email: user.email,
         },
         {
-          expiresIn: '15m',
+          expiresIn: '5h',
         },
       ),
       refreshToken: this.jwtService.sign({

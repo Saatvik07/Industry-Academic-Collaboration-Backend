@@ -38,7 +38,11 @@ export class CreatePOCUserDto {
 
   @IsBoolean()
   @ApiProperty()
-  isEmailVerified: boolean;
+  isEmailVerified?: boolean;
+
+  @IsBoolean()
+  @ApiProperty()
+  isVerified?: boolean;
 }
 
 export class CreateUserDto extends PasswordsDto {
@@ -69,5 +73,9 @@ export class CreateUserDto extends PasswordsDto {
 
   @IsBoolean()
   @ApiProperty()
-  isEmailVerified: boolean;
+  isEmailVerified?: boolean;
+
+  @IsBoolean()
+  @ApiProperty()
+  isVerified?: boolean;
 }
