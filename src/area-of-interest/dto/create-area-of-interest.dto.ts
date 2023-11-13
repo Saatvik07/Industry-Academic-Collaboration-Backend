@@ -9,7 +9,7 @@ export class CreateAreaOfInterestDto {
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(200)
+  @MaxLength(500)
   @ApiProperty()
   description: string;
 }

@@ -11,11 +11,13 @@ import {
 import { AreaOfInterestService } from './area-of-interest.service';
 import { CreateAreaOfInterestDto } from './dto/create-area-of-interest.dto';
 import { UpdateAreaOfInterestDto } from './dto/update-area-of-interest.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { Request } from 'express-serve-static-core';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('area-of-interest')
+@ApiTags('areas-of-interest')
 export class AreaOfInterestController {
   constructor(private readonly areaOfInterestService: AreaOfInterestService) {}
 
@@ -31,11 +33,13 @@ export class AreaOfInterestController {
   }
 
   @Get()
+  @Public()
   findAll() {
     return this.areaOfInterestService.findAll();
   }
 
   @Get(':id')
+  @Public()
   findOne(@Param('id') id: string) {
     return this.areaOfInterestService.findOne(+id);
   }

@@ -42,11 +42,9 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     const request = context.switchToHttp().getRequest();
-    const userId = request.user;
+    const { userId } = request.user;
     const user = await this.userService.findOne(userId);
-    const a = this.matchRoles(roles, user.role);
-    console.log(a);
-    return a;
+    return this.matchRoles(roles, user.role);
   }
 
   private matchRoles(roles: Array<string>, userRole: Role) {

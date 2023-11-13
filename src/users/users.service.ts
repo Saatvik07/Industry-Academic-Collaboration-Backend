@@ -25,6 +25,14 @@ export class UsersService {
       throw new BadRequestException('Passwords do not match');
     }
   }
+
+  public getConnectList<T>(idList: Array<T>) {
+    return idList.map((id) => {
+      return {
+        id,
+      };
+    });
+  }
   async createUser(createUserDto: CreateUserDto) {
     const { password1, password, firstName, lastName, orgId, role, email } =
       createUserDto;
@@ -111,6 +119,31 @@ export class UsersService {
     return this.prisma.user.findUnique({
       where: {
         email,
+      },
+    });
+  }
+
+  findAreasOfInterest(userId: number) {
+    return this.prisma.user.findUnique({
+      where: {
+        userId,
+      },
+      include: {
+        areaOfInterest: true,
+      },
+    });
+  }
+
+  async addAreasOfInterest(userId: number, areasOfInterestIds: Array<number>) {
+    return this.prisma.user.update({
+      where: { userId },
+      data: {
+        areaOfInterest: {
+          connect: this.getConnectList<number>(areasOfInterestIds),
+        },
+      },
+      include: {
+        areaOfInterest: true,
       },
     });
   }
