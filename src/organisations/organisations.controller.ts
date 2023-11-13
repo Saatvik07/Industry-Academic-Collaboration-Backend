@@ -13,47 +13,59 @@ import {
 import { OrganisationsService } from './organisations.service';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
 import { UpdateOrganisationDto } from './dto/update-organisation.dto';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { OrganisationEntity } from './entities/organisation.entity';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { Role, User } from '@prisma/client';
 import { UserEntity } from 'src/users/entities/user.entity';
-import _map from 'lodash/map';
 import { VerifyMemberDto } from './dto/verify-member.dto';
+import { Public } from 'src/auth/decorators/public.decorator';
 @Controller('organisations')
 @ApiTags('organisations')
 export class OrganisationsController {
   constructor(private readonly organisationsService: OrganisationsService) {}
 
   private mapResponseToUserEntity(users: Array<User>) {
-    return _map(users, (user) => new UserEntity(user));
+    return users.map((user) => new UserEntity(user));
   }
 
   @Post()
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   @ApiCreatedResponse({ type: OrganisationEntity })
   create(@Body() createOrganisationDto: CreateOrganisationDto) {
     return this.organisationsService.create(createOrganisationDto);
   }
 
   @Get()
+  @Public()
   @ApiOkResponse({ type: OrganisationEntity, isArray: true })
   findAll() {
     return this.organisationsService.findAll();
   }
 
   @Get('academic')
+  @Public()
   @ApiOkResponse({ type: OrganisationEntity, isArray: true })
   findAcademicOrganisations() {
     return this.organisationsService.findAcademicOrganisations();
   }
 
   @Get('industry')
+  @Public()
   @ApiOkResponse({ type: OrganisationEntity, isArray: true })
   findIndustryOrganisations() {
     return this.organisationsService.findIndustryOrganisations();
   }
 
   @Get(':id')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   @ApiOkResponse({ type: OrganisationEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const org = await this.organisationsService.findOne(id);
@@ -64,6 +76,7 @@ export class OrganisationsController {
   }
 
   @Get('members/unverified/:id')
+  @ApiBearerAuth()
   @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.INDUSTRY_REP])
   @ApiOkResponse({ type: OrganisationEntity })
   async findUnverifiedOrganizationMembers(
@@ -81,6 +94,7 @@ export class OrganisationsController {
   }
 
   @Get('members/verified/:id')
+  @ApiBearerAuth()
   @Roles([
     Role.ADMIN,
     Role.ACADEMIC_REP,
@@ -102,6 +116,7 @@ export class OrganisationsController {
   }
 
   @Get('members/representative/:id')
+  @ApiBearerAuth()
   @Roles([Role.ADMIN])
   @ApiOkResponse({ type: OrganisationEntity })
   async findOrganizationPOC(@Param('id', ParseIntPipe) id: number) {
@@ -115,7 +130,9 @@ export class OrganisationsController {
     return org;
   }
 
-  @Post()
+  @Post('verify_members/:id')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.INDUSTRY_REP])
   @ApiOkResponse({ type: Array<UserEntity> })
   async verifyOrganizationMembers(
     @Param('id', ParseIntPipe) id: number,
@@ -123,6 +140,7 @@ export class OrganisationsController {
   ) {
     const users = await this.organisationsService.verifyOrganizationMembers(
       verifyMemberDto.memberIds,
+      id,
     );
     if (users.length) {
       return this.mapResponseToUserEntity(users);
@@ -131,6 +149,8 @@ export class OrganisationsController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   @ApiOkResponse({ type: OrganisationEntity })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -140,6 +160,8 @@ export class OrganisationsController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   @ApiOkResponse({ type: OrganisationEntity })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.organisationsService.remove(id);

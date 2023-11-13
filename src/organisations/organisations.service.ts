@@ -4,7 +4,6 @@ import { UpdateOrganisationDto } from './dto/update-organisation.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OrgType } from '@prisma/client';
 import { UsersService } from 'src/users/users.service';
-import _map from 'lodash/map';
 @Injectable()
 export class OrganisationsService {
   constructor(
@@ -138,10 +137,10 @@ export class OrganisationsService {
     });
   }
 
-  verifyOrganizationMembers(memberIds: Array<number>) {
+  verifyOrganizationMembers(memberIds: Array<number>, orgId: number) {
     return Promise.all(
-      _map(memberIds, (memberId) => {
-        return this.userService.update(memberId, {
+      memberIds.map((memberId) => {
+        return this.userService.updateVerificationStatus(memberId, orgId, {
           isVerified: true,
         });
       }),

@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   ParseIntPipe,
-  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreatePOCUserDto, CreateUserDto } from './dto/create-user.dto';
@@ -19,7 +18,6 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { Role } from '@prisma/client';
 import { Public } from 'src/auth/decorators/public.decorator';
@@ -37,6 +35,8 @@ export class UsersController {
   }
 
   @Post('org_rep')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   @ApiCreatedResponse({ type: UserEntity })
   async createPOCUser(@Body() createPOCUserDto: CreatePOCUserDto) {
     return new UserEntity(
@@ -45,9 +45,8 @@ export class UsersController {
   }
 
   @Get()
-  @Roles([Role.ADMIN])
-  // @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   @ApiOkResponse({ type: UserEntity, isArray: true })
   async findAll() {
     const users = await this.usersService.findAll();
@@ -55,16 +54,16 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   @ApiOkResponse({ type: UserEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return new UserEntity(await this.usersService.findOne(id));
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   @ApiCreatedResponse({ type: UserEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -74,8 +73,8 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   @ApiOkResponse({ type: UserEntity })
   async remove(@Param('id', ParseIntPipe) id: number) {
     return new UserEntity(await this.usersService.remove(id));

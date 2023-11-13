@@ -127,6 +127,17 @@ export class UsersService {
     });
   }
 
+  async updateVerificationStatus(
+    userId: number,
+    orgId: number,
+    updateUserDto: UpdateUserDto,
+  ) {
+    return this.prisma.user.update({
+      where: { userId, orgId },
+      data: updateUserDto,
+    });
+  }
+
   remove(userId: number) {
     return this.prisma.user.delete({
       where: { userId },
