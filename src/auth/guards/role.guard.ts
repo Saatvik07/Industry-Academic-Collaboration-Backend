@@ -79,10 +79,13 @@ export class RolesGuard implements CanActivate {
     }
 
     try {
-      const { userId } = await this.jwtService.verify(token, {
+      const { userId, email } = await this.jwtService.verify(token, {
         secret: this.configService.get<string>('jwt.jwtSecret'),
       });
-      req.user = userId;
+      req.user = {
+        userId,
+        email,
+      };
       return true;
     } catch (_) {
       return isPublic;
