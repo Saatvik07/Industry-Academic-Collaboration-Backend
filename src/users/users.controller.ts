@@ -95,14 +95,6 @@ export class UsersController {
     );
   }
 
-  @Get(':id')
-  @ApiBearerAuth()
-  @Roles([Role.ADMIN])
-  @ApiOkResponse({ type: UserEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return new UserEntity(await this.usersService.findOne(id));
-  }
-
   @Get('/details')
   @ApiBearerAuth()
   @Roles([
@@ -117,6 +109,14 @@ export class UsersController {
   async getUserDetails(@Req() req: Request) {
     const { userId } = req.user;
     return new UserEntity(await this.usersService.findOne(userId));
+  }
+
+  @Get(':id')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  @ApiOkResponse({ type: UserEntity })
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return new UserEntity(await this.usersService.findOne(id));
   }
 
   @Patch(':id')
