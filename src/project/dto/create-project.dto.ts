@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class CreateDraftProjectDto {
   @IsString()
@@ -12,12 +12,4 @@ export class CreateDraftProjectDto {
   @MaxLength(500)
   @ApiProperty()
   summary: string;
-
-  @IsDate()
-  @ApiProperty()
-  startDate: Date;
-
-  @IsDate()
-  @ApiProperty()
-  endDate: Date;
 }
