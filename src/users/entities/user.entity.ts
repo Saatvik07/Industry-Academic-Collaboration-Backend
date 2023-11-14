@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Role, User } from '@prisma/client';
+import { AreaOfInterest, Role, User } from '@prisma/client';
 import { Exclude } from 'class-transformer';
 
 export class UserEntity implements User {
@@ -41,4 +41,7 @@ export class UserEntity implements User {
 
   @ApiProperty({ default: false })
   isEmailVerified: boolean;
+
+  @ApiProperty()
+  areaOfInterest?: AreaOfInterest[];
 }

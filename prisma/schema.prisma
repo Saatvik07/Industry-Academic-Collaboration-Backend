@@ -25,27 +25,40 @@ enum OrgType {
 }
 
 model User {
-  userId Int @id @default(autoincrement())
-  firstName String 
-  lastName String
-  email String @unique
-  password String
-  createAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
-  role Role @default(ACADEMIC_USER)
-  organization Organization @relation(fields: [orgId], references: [id])
-  orgId Int
-  isPoc Boolean @default(false)
-  isVerified Boolean @default(false)
-  isEmailVerified Boolean @default(false)
+  userId                Int              @id @default(autoincrement())
+  firstName             String
+  lastName              String
+  email                 String           @unique
+  password              String
+  createAt              DateTime         @default(now())
+  updatedAt             DateTime         @default(now()) @updatedAt
+  role                  Role             @default(ACADEMIC_USER)
+  organization          Organization     @relation(fields: [orgId], references: [id])
+  orgId                 Int
+  isPoc                 Boolean          @default(false)
+  isVerified            Boolean          @default(false)
+  isEmailVerified       Boolean          @default(false)
+  areaOfInterest        AreaOfInterest[]
+  areaOfInterestCreated AreaOfInterest[] @relation("Creator")
 }
 
 model Organization {
-  id Int @id @default(autoincrement())
-  name String @unique
-  type OrgType @default(ACADEMIC)
-  location String
-  createAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  type      OrgType  @default(ACADEMIC)
+  location  String
+  createAt  DateTime @default(now())
   updatedAt DateTime @updatedAt
-  users User[]
+  users     User[]
+}
+
+model AreaOfInterest {
+  id              Int      @id @default(autoincrement())
+  title           String   @unique
+  description     String
+  createAt        DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  users           User[]
+  createdBy       User     @relation("Creator", fields: [createdByUserId], references: [userId])
+  createdByUserId Int
 }
