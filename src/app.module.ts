@@ -13,6 +13,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { RolesGuard } from './auth/guards/role.guard';
 import { AreaOfInterestModule } from './area-of-interest/area-of-interest.module';
+import { ProjectModule } from './project/project.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AreaOfInterestModule } from './area-of-interest/area-of-interest.module
     MailerModule,
     JwtModule,
     AreaOfInterestModule,
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [

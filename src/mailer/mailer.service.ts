@@ -3,12 +3,19 @@ import { ConfigService } from '@nestjs/config';
 import { createTransport, Transporter } from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { IEmailConfig } from 'src/config/interfaces/email-config.interface';
-import { ITemplateData } from './interfaces/template-data.interface';
+import {
+  IProjectVerificationTemplateData,
+  ITemplateData,
+} from './interfaces/template-data.interface';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import Handlebars from 'handlebars';
 import { ITemplates } from './interfaces/templates.interface';
-import { IUser, IUserInvitation } from 'src/users/interfaces/user.interface';
+import {
+  IProjectVerfication,
+  IUser,
+  IUserInvitation,
+} from 'src/users/interfaces/user.interface';
 
 @Injectable()
 export class MailerService {
@@ -33,6 +40,10 @@ export class MailerService {
       platformInvitation: MailerService.parseTemplate<ITemplateData>(
         'platformInvitation.hbs',
       ),
+      projectVerification:
+        MailerService.parseTemplate<IProjectVerificationTemplateData>(
+          'projectVerification.hbs',
+        ),
     };
   }
 
@@ -111,6 +122,37 @@ export class MailerService {
       subject,
       html,
       `A new invitation email was sent to ${firstName} ${lastName}, ${email}`,
+    );
+  }
+
+  public sendProjectVerficationEmail(
+    props: IProjectVerfication,
+    token: string,
+  ) {
+    const {
+      firstName,
+      lastName,
+      inviterFirstName,
+      inviterLastName,
+      projectName,
+      email,
+    } = props;
+    const subject =
+      'You have been invited to a project on  Industry-Academic Collaboration Platform';
+    const html = this.templates.projectVerification({
+      firstName,
+      lastName,
+      inviterFirstName,
+      inviterLastName,
+      projectName,
+      email,
+      url: `https://${this.domain}/projectVerification/${token}`,
+    });
+    return this.sendEmail(
+      email,
+      subject,
+      html,
+      `A new project verification email was sent to ${firstName} ${lastName}, ${email}`,
     );
   }
 }

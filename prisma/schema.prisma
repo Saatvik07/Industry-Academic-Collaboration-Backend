@@ -45,16 +45,20 @@ model User {
   isEmailVerified        Boolean          @default(false)
   areaOfInterest        AreaOfInterest[]
   areaOfInterestCreated AreaOfInterest[] @relation("Creator")
+  industryProjects      Project[]        @relation("IndustryUsers")
+  academicProjects      Project[]        @relation("AcademicUsers")
 }
 
 model Organization {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  type      OrgType  @default(ACADEMIC)
-  location  String
-  createAt  DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users     User[]
+  id               Int       @id @default(autoincrement())
+  name             String    @unique
+  type             OrgType   @default(ACADEMIC)
+  location         String
+  createAt         DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  users            User[]
+  industryProjects Project[] @relation("ProjectIndustryOrg")
+  academicProjects Project[] @relation("ProjectAcademicOrg")
 }
 
 model AreaOfInterest {
@@ -66,4 +70,27 @@ model AreaOfInterest {
   users           User[]
   createdBy       User     @relation("Creator", fields: [createdByUserId], references: [userId])
   createdByUserId Int
+}
+
+enum ProjectStatus {
+  DRAFT
+  VERFICATION_PENDING
+  ONGOING
+  COMPLETED
+}
+
+model Project {
+  id              Int           @id @default(autoincrement())
+  title           String
+  summary         String
+  startDate       DateTime
+  endDate         DateTime
+  industryOrg     Organization?  @relation("ProjectIndustryOrg", fields: [industryOrgId], references: [id])
+  industryOrgId   Int?
+  academicOrg     Organization  @relation("ProjectAcademicOrg", fields: [academicOrgId], references: [id])
+  academicOrgId   Int
+  industryUsers   User[]        @relation("IndustryUsers")
+  academicUsers   User[]        @relation("AcademicUsers")
+  progressUpdates String[]
+  status          ProjectStatus @default(DRAFT)
 }
