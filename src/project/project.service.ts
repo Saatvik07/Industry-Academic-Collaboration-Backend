@@ -31,14 +31,12 @@ export class ProjectService {
     createDraftProject: CreateDraftProjectDto,
     userId: number,
   ) {
-    const { title, summary, startDate, endDate } = createDraftProject;
+    const { title, summary } = createDraftProject;
     const user = await this.userService.findOne(userId);
     return this.prisma.project.create({
       data: {
         title,
         summary,
-        startDate,
-        endDate,
         academicOrgId: user.orgId,
         academicUsers: {
           connect: {
