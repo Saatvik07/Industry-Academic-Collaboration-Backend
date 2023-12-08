@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { CreatePOCUserDto, CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { generateRandomString } from './users.utils';
 import * as bcrypt from 'bcrypt';
-import { MailerService } from 'src/mailer/mailer.service';
+import { MailerService } from '../mailer/mailer.service';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -33,6 +33,7 @@ export class UsersService {
       };
     });
   }
+
   async createUser(createUserDto: CreateUserDto) {
     const { password1, password, firstName, lastName, orgId, role, email } =
       createUserDto;
