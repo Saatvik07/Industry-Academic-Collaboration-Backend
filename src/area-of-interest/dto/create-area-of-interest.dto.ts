@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class GetAOIQueryParams {
   @IsString()
@@ -20,4 +27,11 @@ export class CreateAreaOfInterestDto {
   @MaxLength(500)
   @ApiProperty()
   description: string;
+}
+
+export class CreateAreaOfInterestBulkDto {
+  @IsArray()
+  @Type(() => CreateAreaOfInterestDto)
+  @ApiProperty()
+  aoiList: Array<CreateAreaOfInterestDto>;
 }

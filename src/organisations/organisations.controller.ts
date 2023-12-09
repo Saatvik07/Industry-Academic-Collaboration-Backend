@@ -41,7 +41,7 @@ export class OrganisationsController {
 
   @Post()
   @ApiBearerAuth()
-  @Roles([Role.ADMIN])
+  @Public()
   @ApiCreatedResponse({ type: OrganisationEntity })
   create(@Body() createOrganisationDto: CreateOrganisationDto) {
     return this.organisationsService.create(createOrganisationDto);

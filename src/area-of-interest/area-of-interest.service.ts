@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAreaOfInterestDto } from './dto/create-area-of-interest.dto';
+import {
+  CreateAreaOfInterestBulkDto,
+  CreateAreaOfInterestDto,
+} from './dto/create-area-of-interest.dto';
 import { UpdateAreaOfInterestDto } from './dto/update-area-of-interest.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -12,6 +15,23 @@ export class AreaOfInterestService {
         ...createAreaOfInterestDto,
         createdByUserId: userId,
       },
+    });
+  }
+
+  createBulk(
+    createAreaOfInterestDto: CreateAreaOfInterestBulkDto,
+    userId: number,
+  ) {
+    const { aoiList } = createAreaOfInterestDto;
+    const bulkCreatePayload = aoiList.map(({ title, description }) => {
+      return {
+        title,
+        description,
+        createdByUserId: userId,
+      };
+    });
+    return this.prisma.areaOfInterest.createMany({
+      data: bulkCreatePayload,
     });
   }
 

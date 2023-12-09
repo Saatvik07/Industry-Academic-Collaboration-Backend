@@ -108,7 +108,6 @@ export class CreateUserDto extends PasswordsDto {
   isPoc?: boolean;
 
   @IsArray()
-  @Type(() => Number)
   @ApiProperty()
   areasofInterest?: Array<number>;
 }

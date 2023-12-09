@@ -118,7 +118,6 @@ export class UsersService {
         else throw new InternalServerErrorException('Cannot send email');
       }
     } else {
-      console.log(exist);
       throw new BadRequestException('Cannot create student with this email');
     }
   }

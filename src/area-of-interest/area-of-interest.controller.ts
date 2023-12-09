@@ -11,8 +11,9 @@ import {
 } from '@nestjs/common';
 import { AreaOfInterestService } from './area-of-interest.service';
 import {
-  CreateAreaOfInterestDto,
   GetAOIQueryParams,
+  CreateAreaOfInterestBulkDto,
+  CreateAreaOfInterestDto,
 } from './dto/create-area-of-interest.dto';
 import { UpdateAreaOfInterestDto } from './dto/update-area-of-interest.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -35,6 +36,20 @@ export class AreaOfInterestController {
   ) {
     const { userId } = req.user;
     return this.areaOfInterestService.create(createAreaOfInterestDto, userId);
+  }
+
+  @Post('add_bulk')
+  @ApiBearerAuth()
+  @Roles(['ADMIN', 'ACADEMIC_REP', 'INDUSTRY_REP'])
+  createBulk(
+    @Body() createAreaOfInterestBulkDto: CreateAreaOfInterestBulkDto,
+    @Req() req: Request,
+  ) {
+    const { userId } = req.user;
+    return this.areaOfInterestService.createBulk(
+      createAreaOfInterestBulkDto,
+      userId,
+    );
   }
 
   @Get()
