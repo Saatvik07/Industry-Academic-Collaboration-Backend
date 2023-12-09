@@ -4,7 +4,11 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { CreateStudentUserDto, CreateUserDto } from './dto/create-user.dto';
+import {
+  CreateStudentUserDto,
+  CreateUserDto,
+  InviteUserDto,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { generateRandomString } from './users.utils';
@@ -118,7 +122,6 @@ export class UsersService {
         else throw new InternalServerErrorException('Cannot send email');
       }
     } else {
-      console.log(exist);
       throw new BadRequestException('Cannot create student with this email');
     }
   }
@@ -155,7 +158,7 @@ export class UsersService {
     });
   }
 
-  searchUser(searchQuery: string, orgId: number) {
+  searchUser(searchQuery: string, orgId: number, role: Role) {
     const searchObject = {};
     if (searchQuery && searchQuery !== '') {
       searchObject['OR'] = [
@@ -175,6 +178,15 @@ export class UsersService {
     }
     if (orgId) {
       searchObject['AND'] = [{ orgId }];
+    }
+    if (role) {
+      if (searchObject['AND'] && searchObject['AND'].length > 0) {
+        searchObject['AND'].push({
+          role,
+        });
+      } else {
+        searchObject['AND'] = [{ role }];
+      }
     }
     return this.prisma.user.findMany({
       where: searchObject,
@@ -272,5 +284,33 @@ export class UsersService {
     return this.prisma.user.delete({
       where: { userId },
     });
+  }
+
+  async inviteUser(inviteUserDto: InviteUserDto) {
+    const password = generateRandomString(8);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    let user;
+    const pocUser = {
+      ...inviteUserDto,
+      password: hashedPassword,
+      isVerified: true,
+      isEmailVerified: true,
+    };
+    try {
+      user = this.prisma.user.create({
+        data: pocUser,
+      });
+    } catch (error) {
+      throw new ForbiddenException(error);
+    } finally {
+      const result = await this.mailerService.sendPlatformInvitation({
+        email: inviteUserDto.email,
+        firstName: inviteUserDto.firstName,
+        lastName: inviteUserDto.lastName,
+        password,
+      });
+      if (result.success) return user;
+      else throw new InternalServerErrorException('Cannot send email');
+    }
   }
 }

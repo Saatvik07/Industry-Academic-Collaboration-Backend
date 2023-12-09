@@ -17,6 +17,7 @@ import {
   CreateStudentUserDto,
   CreateUserDto,
   GetUserQueryParams,
+  InviteUserDto,
 } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
@@ -97,11 +98,12 @@ export class UsersController {
   ])
   @ApiOkResponse({ type: SearchResponseUser, isArray: true })
   async findAll(@Query() query: GetUserQueryParams) {
-    const { searchQuery, orgId } = query;
+    const { searchQuery, orgId, role } = query;
 
     const users = await this.usersService.searchUser(
       searchQuery,
       parseInt(orgId, 10),
+      role,
     );
     return users.map((user) => new SearchResponseUser(user));
   }
@@ -109,12 +111,12 @@ export class UsersController {
   @Get('/areasOfInterest')
   @ApiBearerAuth()
   @Roles([
-    'ADMIN',
-    'ACADEMIC_REP',
-    'INDUSTRY_REP',
-    'ACADEMIC_USER',
-    'INDUSTRY_USER',
-    'ACADEMIC_STUDENT',
+    Role.ADMIN,
+    Role.ACADEMIC_USER,
+    Role.ACADEMIC_REP,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+    Role.ACADEMIC_STUDENT,
   ])
   async findUserAreasOfInterest(@Req() req: Request) {
     const { userId } = req.user;
@@ -124,12 +126,12 @@ export class UsersController {
   @Post('/areasOfInterest')
   @ApiBearerAuth()
   @Roles([
-    'ADMIN',
-    'ACADEMIC_REP',
-    'INDUSTRY_REP',
-    'ACADEMIC_USER',
-    'INDUSTRY_USER',
-    'ACADEMIC_STUDENT',
+    Role.ADMIN,
+    Role.ACADEMIC_USER,
+    Role.ACADEMIC_REP,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+    Role.ACADEMIC_STUDENT,
   ])
   async addAreasOfInterest(
     @Body() addAreaofInterestDto: AddAreaofInterestDto,
@@ -147,12 +149,12 @@ export class UsersController {
   @Get('/details')
   @ApiBearerAuth()
   @Roles([
-    'ADMIN',
-    'ACADEMIC_REP',
-    'INDUSTRY_REP',
-    'ACADEMIC_USER',
-    'INDUSTRY_USER',
-    'ACADEMIC_STUDENT',
+    Role.ADMIN,
+    Role.ACADEMIC_USER,
+    Role.ACADEMIC_REP,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+    Role.ACADEMIC_STUDENT,
   ])
   @ApiOkResponse({ type: UserEntity })
   async getUserDetails(@Req() req: Request) {
@@ -184,6 +186,20 @@ export class UsersController {
     throw new InternalServerErrorException(
       'Error in making users representative',
     );
+  }
+
+  @Post('/invite')
+  @ApiBearerAuth()
+  @Roles([
+    Role.ADMIN,
+    Role.ACADEMIC_USER,
+    Role.ACADEMIC_REP,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+  ])
+  @ApiOkResponse({ type: UserEntity })
+  async inviteUser(@Body() inviteUserDto: InviteUserDto) {
+    return new UserEntity(await this.usersService.inviteUser(inviteUserDto));
   }
 
   @Get(':id')
