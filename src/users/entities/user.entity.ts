@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AreaOfInterest, Role, User } from '@prisma/client';
+import { AreaOfInterest, Organization, Role, User } from '@prisma/client';
 import { Exclude } from 'class-transformer';
 
 export class SearchResponseUser implements User {
@@ -33,6 +33,9 @@ export class SearchResponseUser implements User {
 
   @ApiProperty()
   orgId: number;
+
+  @ApiProperty()
+  org: Organization;
 
   @Exclude()
   isPoc: boolean;
