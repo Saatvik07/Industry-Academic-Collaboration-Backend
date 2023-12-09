@@ -16,8 +16,8 @@ import { VerifyProjectDto } from './dto/verify-project.dto';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { ApiTags } from '@nestjs/swagger';
 
-@Controller('project')
 @ApiTags('project')
+@Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
