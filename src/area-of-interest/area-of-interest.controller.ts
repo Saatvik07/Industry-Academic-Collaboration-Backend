@@ -7,14 +7,19 @@ import {
   Param,
   Delete,
   Req,
+  Query,
 } from '@nestjs/common';
 import { AreaOfInterestService } from './area-of-interest.service';
-import { CreateAreaOfInterestDto } from './dto/create-area-of-interest.dto';
+import {
+  CreateAreaOfInterestDto,
+  GetAOIQueryParams,
+} from './dto/create-area-of-interest.dto';
 import { UpdateAreaOfInterestDto } from './dto/update-area-of-interest.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { Request } from 'express-serve-static-core';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { SearchResposeAOI } from './entities/area-of-interest.entity';
 
 @Controller('area-of-interest')
 @ApiTags('areas-of-interest')
@@ -34,8 +39,11 @@ export class AreaOfInterestController {
 
   @Get()
   @Public()
-  findAll() {
-    return this.areaOfInterestService.findAll();
+  async findAll(@Query() query: GetAOIQueryParams) {
+    const { searchQuery } = query;
+
+    const users = await this.areaOfInterestService.searchAOI(searchQuery);
+    return users.map((user) => new SearchResposeAOI(user));
   }
 
   @Get(':id')

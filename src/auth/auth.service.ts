@@ -36,7 +36,7 @@ export class AuthService {
           id: user.userId,
         },
         {
-          expiresIn: '60m',
+          expiresIn: '180m',
         },
       );
       await this.mailerService.sendConfirmationEmail(

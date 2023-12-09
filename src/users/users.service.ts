@@ -155,6 +155,32 @@ export class UsersService {
     });
   }
 
+  searchUser(searchQuery: string, orgId: number) {
+    const searchObject = {};
+    if (searchQuery && searchQuery !== '') {
+      searchObject['OR'] = [
+        {
+          firstName: {
+            contains: searchQuery,
+            mode: 'insensitive',
+          },
+        },
+        {
+          lastName: {
+            contains: searchQuery,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+    if (orgId) {
+      searchObject['AND'] = [{ orgId }];
+    }
+    return this.prisma.user.findMany({
+      where: searchObject,
+    });
+  }
+
   async addAreasOfInterest(userId: number, areasOfInterestIds: Array<number>) {
     return this.prisma.user.update({
       where: { userId },

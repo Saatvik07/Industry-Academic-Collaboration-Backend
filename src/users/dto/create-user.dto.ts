@@ -19,6 +19,21 @@ export class IStudentInfo {
   email: string;
 }
 
+export class GetUserQueryParams {
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  orgId?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  searchQuery?: string;
+}
 export class AddSuperviseesDto {
   @IsArray()
   @Type(() => Number)
