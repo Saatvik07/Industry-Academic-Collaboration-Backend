@@ -44,4 +44,10 @@ export class UserEntity implements User {
 
   @ApiProperty()
   areaOfInterest?: AreaOfInterest[];
+
+  @ApiProperty()
+  website: string;
+
+  @ApiProperty()
+  department: string;
 }

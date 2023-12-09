@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -29,6 +30,10 @@ model User {
   firstName             String
   lastName              String
   email                 String           @unique
+  website               String?
+  department            String?
+  supervisors           User[]           @relation("Supervisors")
+  supervisees           User[]           @relation("Supervisors")
   password              String
   createAt              DateTime         @default(now())
   updatedAt             DateTime         @default(now()) @updatedAt
@@ -36,8 +41,8 @@ model User {
   organization          Organization     @relation(fields: [orgId], references: [id])
   orgId                 Int
   isPoc                 Boolean          @default(false)
-  isVerified            Boolean          @default(false)
-  isEmailVerified       Boolean          @default(false)
+  isVerified             Boolean          @default(false)
+  isEmailVerified        Boolean          @default(false)
   areaOfInterest        AreaOfInterest[]
   areaOfInterestCreated AreaOfInterest[] @relation("Creator")
 }

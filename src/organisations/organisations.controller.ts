@@ -8,7 +8,6 @@ import {
   Delete,
   ParseIntPipe,
   NotFoundException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { OrganisationsService } from './organisations.service';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
@@ -23,7 +22,6 @@ import { OrganisationEntity } from './entities/organisation.entity';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { Role, User } from '@prisma/client';
 import { UserEntity } from 'src/users/entities/user.entity';
-import { VerifyMemberDto } from './dto/verify-member.dto';
 import { Public } from 'src/auth/decorators/public.decorator';
 @Controller('organisations')
 @ApiTags('organisations')
@@ -128,24 +126,6 @@ export class OrganisationsController {
       org.users = this.mapResponseToUserEntity(org.users);
     }
     return org;
-  }
-
-  @Post('verify_members/:id')
-  @ApiBearerAuth()
-  @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.INDUSTRY_REP])
-  @ApiOkResponse({ type: Array<UserEntity> })
-  async verifyOrganizationMembers(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() verifyMemberDto: VerifyMemberDto,
-  ) {
-    const users = await this.organisationsService.verifyOrganizationMembers(
-      verifyMemberDto.memberIds,
-      id,
-    );
-    if (users.length) {
-      return this.mapResponseToUserEntity(users);
-    }
-    throw new InternalServerErrorException('Error in verifying member IDs');
   }
 
   @Patch(':id')
