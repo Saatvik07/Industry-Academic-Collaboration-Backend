@@ -33,6 +33,13 @@ export class GetUserQueryParams {
     required: false,
   })
   searchQuery?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  role?: Role;
 }
 export class AddSuperviseesDto {
   @IsArray()

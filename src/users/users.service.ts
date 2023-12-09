@@ -154,7 +154,7 @@ export class UsersService {
     });
   }
 
-  searchUser(searchQuery: string, orgId: number) {
+  searchUser(searchQuery: string, orgId: number, role: Role) {
     const searchObject = {};
     if (searchQuery && searchQuery !== '') {
       searchObject['OR'] = [
@@ -174,6 +174,15 @@ export class UsersService {
     }
     if (orgId) {
       searchObject['AND'] = [{ orgId }];
+    }
+    if (role) {
+      if (searchObject['AND'] && searchObject['AND'].length > 0) {
+        searchObject['AND'].push({
+          role,
+        });
+      } else {
+        searchObject['AND'] = [{ role }];
+      }
     }
     return this.prisma.user.findMany({
       where: searchObject,

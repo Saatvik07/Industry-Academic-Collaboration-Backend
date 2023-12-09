@@ -97,11 +97,12 @@ export class UsersController {
   ])
   @ApiOkResponse({ type: SearchResponseUser, isArray: true })
   async findAll(@Query() query: GetUserQueryParams) {
-    const { searchQuery, orgId } = query;
+    const { searchQuery, orgId, role } = query;
 
     const users = await this.usersService.searchUser(
       searchQuery,
       parseInt(orgId, 10),
+      role,
     );
     return users.map((user) => new SearchResponseUser(user));
   }
