@@ -41,6 +41,14 @@ export class GetUserQueryParams {
   })
   role?: Role;
 }
+export class GetUserSearchBody {
+  @IsArray()
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  areasOfInterest?: Array<number>;
+}
 export class AddSuperviseesDto {
   @IsArray()
   @Type(() => Number)

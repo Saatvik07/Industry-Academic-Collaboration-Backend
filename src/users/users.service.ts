@@ -158,7 +158,12 @@ export class UsersService {
     });
   }
 
-  searchUser(searchQuery: string, orgId: number, role: Role) {
+  searchUser(
+    searchQuery: string,
+    orgId: number,
+    role: Role,
+    areasOfInterest: Array<number>,
+  ) {
     const searchObject = {};
     if (searchQuery && searchQuery !== '') {
       searchObject['OR'] = [
@@ -188,8 +193,28 @@ export class UsersService {
         searchObject['AND'] = [{ role }];
       }
     }
+    if (areasOfInterest && areasOfInterest.length) {
+      const obj = {
+        areaOfInterest: {
+          some: {
+            id: {
+              in: areasOfInterest,
+            },
+          },
+        },
+      };
+      if (searchObject['AND'] && searchObject['AND'].length > 0) {
+        searchObject['AND'].push(obj);
+      } else {
+        searchObject['AND'] = [obj];
+      }
+    }
     return this.prisma.user.findMany({
       where: searchObject,
+      include: {
+        areaOfInterest: true,
+        organization: true,
+      },
     });
   }
 
@@ -202,6 +227,30 @@ export class UsersService {
         },
       },
       include: {
+        areaOfInterest: true,
+      },
+    });
+  }
+
+  getSupervisees(userId: number) {
+    return this.prisma.user.findUnique({
+      where: { userId },
+      include: {
+        supervisees: true,
+        supervisors: true,
+        organization: true,
+        areaOfInterest: true,
+      },
+    });
+  }
+
+  getUnverifiedUsers() {
+    return this.prisma.user.findMany({
+      where: {
+        isVerified: false,
+      },
+      include: {
+        organization: true,
         areaOfInterest: true,
       },
     });

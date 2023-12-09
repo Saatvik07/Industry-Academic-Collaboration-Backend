@@ -17,6 +17,7 @@ import {
   CreateStudentUserDto,
   CreateUserDto,
   GetUserQueryParams,
+  GetUserSearchBody,
   InviteUserDto,
 } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -31,7 +32,10 @@ import { Roles } from 'src/auth/decorators/role.decorator';
 import { Role, User } from '@prisma/client';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { Request } from 'express-serve-static-core';
-import { AddAreaofInterestDto } from './dto/add-area-of-interest.dto';
+import {
+  AddAreaofInterestDto,
+  BulkAreaofInterestDto,
+} from './dto/add-area-of-interest.dto';
 import { VerifyUserDto } from 'src/organisations/dto/verify-member.dto';
 
 @Controller('users')
@@ -87,7 +91,7 @@ export class UsersController {
     return result;
   }
 
-  @Get()
+  @Post('/search_users')
   @ApiBearerAuth()
   @Roles([
     Role.ADMIN,
@@ -97,13 +101,17 @@ export class UsersController {
     Role.INDUSTRY_REP,
   ])
   @ApiOkResponse({ type: SearchResponseUser, isArray: true })
-  async findAll(@Query() query: GetUserQueryParams) {
+  async findAll(
+    @Query() query: GetUserQueryParams,
+    @Body() getUserSearchBody: GetUserSearchBody,
+  ) {
     const { searchQuery, orgId, role } = query;
-
+    const { areasOfInterest } = getUserSearchBody;
     const users = await this.usersService.searchUser(
       searchQuery,
       parseInt(orgId, 10),
       role,
+      areasOfInterest,
     );
     return users.map((user) => new SearchResponseUser(user));
   }
@@ -144,6 +152,37 @@ export class UsersController {
         addAreaofInterestDto.areaOfInterestIds,
       ),
     );
+  }
+
+  @Post('/bulk_addAOI')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  async bulkAddAreasOfInterest(
+    @Body() bulkAreaofInterestDto: BulkAreaofInterestDto,
+  ) {
+    const { userId, areaOfInterestIds } = bulkAreaofInterestDto;
+    return this.usersService.addAreasOfInterest(userId, areaOfInterestIds);
+  }
+
+  @Get('/supervisees')
+  @ApiBearerAuth()
+  @Roles([
+    Role.ADMIN,
+    Role.ACADEMIC_USER,
+    Role.ACADEMIC_REP,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+  ])
+  async getSupervisees(@Req() req: Request) {
+    const { userId } = req.user;
+    return this.usersService.getSupervisees(userId);
+  }
+
+  @Get('/unverified')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  async getUnverified() {
+    return this.usersService.getUnverifiedUsers();
   }
 
   @Get('/details')
