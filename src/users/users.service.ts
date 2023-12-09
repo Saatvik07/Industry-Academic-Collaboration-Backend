@@ -4,7 +4,11 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { CreateStudentUserDto, CreateUserDto } from './dto/create-user.dto';
+import {
+  CreateStudentUserDto,
+  CreateUserDto,
+  InviteUserDto,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { generateRandomString } from './users.utils';
@@ -280,5 +284,33 @@ export class UsersService {
     return this.prisma.user.delete({
       where: { userId },
     });
+  }
+
+  async inviteUser(inviteUserDto: InviteUserDto) {
+    const password = generateRandomString(8);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    let user;
+    const pocUser = {
+      ...inviteUserDto,
+      password: hashedPassword,
+      isVerified: true,
+      isEmailVerified: true,
+    };
+    try {
+      user = this.prisma.user.create({
+        data: pocUser,
+      });
+    } catch (error) {
+      throw new ForbiddenException(error);
+    } finally {
+      const result = await this.mailerService.sendPlatformInvitation({
+        email: inviteUserDto.email,
+        firstName: inviteUserDto.firstName,
+        lastName: inviteUserDto.lastName,
+        password,
+      });
+      if (result.success) return user;
+      else throw new InternalServerErrorException('Cannot send email');
+    }
   }
 }

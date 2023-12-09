@@ -118,3 +118,38 @@ export class CreateUserDto extends PasswordsDto {
   @ApiProperty()
   areasofInterest?: Array<number>;
 }
+
+export class InviteUserDto {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  firstName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  lastName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsEmail()
+  @ApiProperty()
+  email: string;
+
+  @IsEnum(Role)
+  @IsNotEmpty()
+  @ApiProperty()
+  role: Role;
+
+  @IsNumber()
+  @ApiProperty()
+  orgId: number;
+
+  @IsBoolean()
+  @ApiProperty()
+  isEmailVerified?: boolean;
+
+  @IsBoolean()
+  @ApiProperty()
+  isVerified?: boolean;
+}
