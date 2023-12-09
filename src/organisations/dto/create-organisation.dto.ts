@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { OrgType } from '@prisma/client';
-import { IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 export class CreateOrganisationDto {
   @IsString()
   @IsNotEmpty()
@@ -16,4 +22,20 @@ export class CreateOrganisationDto {
   @IsNotEmpty()
   @ApiProperty()
   location: string;
+}
+
+export class GetOrgQueryParams {
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  type?: OrgType;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  searchQuery?: string;
 }

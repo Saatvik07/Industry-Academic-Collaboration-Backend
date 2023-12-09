@@ -9,12 +9,14 @@ import {
   ParseIntPipe,
   Req,
   InternalServerErrorException,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import {
   AddSuperviseesDto,
   CreateStudentUserDto,
   CreateUserDto,
+  GetUserQueryParams,
 } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
@@ -23,7 +25,7 @@ import {
   ApiOkResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { UserEntity } from './entities/user.entity';
+import { SearchResponseUser, UserEntity } from './entities/user.entity';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { Role, User } from '@prisma/client';
 import { Public } from 'src/auth/decorators/public.decorator';
@@ -86,11 +88,22 @@ export class UsersController {
 
   @Get()
   @ApiBearerAuth()
-  @Roles([Role.ADMIN])
-  @ApiOkResponse({ type: UserEntity, isArray: true })
-  async findAll() {
-    const users = await this.usersService.findAll();
-    return users.map((user) => new UserEntity(user));
+  @Roles([
+    Role.ADMIN,
+    Role.ACADEMIC_USER,
+    Role.ACADEMIC_REP,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+  ])
+  @ApiOkResponse({ type: SearchResponseUser, isArray: true })
+  async findAll(@Query() query: GetUserQueryParams) {
+    const { searchQuery, orgId } = query;
+
+    const users = await this.usersService.searchUser(
+      searchQuery,
+      parseInt(orgId, 10),
+    );
+    return users.map((user) => new SearchResponseUser(user));
   }
 
   @Get('/areasOfInterest')

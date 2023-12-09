@@ -8,9 +8,13 @@ import {
   Delete,
   ParseIntPipe,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { OrganisationsService } from './organisations.service';
-import { CreateOrganisationDto } from './dto/create-organisation.dto';
+import {
+  CreateOrganisationDto,
+  GetOrgQueryParams,
+} from './dto/create-organisation.dto';
 import { UpdateOrganisationDto } from './dto/update-organisation.dto';
 import {
   ApiBearerAuth,
@@ -18,7 +22,10 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { OrganisationEntity } from './entities/organisation.entity';
+import {
+  OrganisationEntity,
+  SearchResponseOrg,
+} from './entities/organisation.entity';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { Role, User } from '@prisma/client';
 import { UserEntity } from 'src/users/entities/user.entity';
@@ -43,8 +50,14 @@ export class OrganisationsController {
   @Get()
   @Public()
   @ApiOkResponse({ type: OrganisationEntity, isArray: true })
-  findAll() {
-    return this.organisationsService.findAll();
+  async findAll(@Query() query: GetOrgQueryParams) {
+    const { searchQuery, type } = query;
+
+    const users = await this.organisationsService.searchOrganisation(
+      searchQuery,
+      type,
+    );
+    return users.map((user) => new SearchResponseOrg(user));
   }
 
   @Get('academic')

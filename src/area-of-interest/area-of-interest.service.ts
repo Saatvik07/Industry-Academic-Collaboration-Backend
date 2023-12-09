@@ -41,4 +41,27 @@ export class AreaOfInterestService {
       where: { id, createdByUserId: userId },
     });
   }
+
+  searchAOI(searchQuery: string) {
+    const searchObject = {};
+    if (searchQuery && searchQuery !== '') {
+      searchObject['OR'] = [
+        {
+          title: {
+            contains: searchQuery,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: searchQuery,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+    return this.prisma.areaOfInterest.findMany({
+      where: searchObject,
+    });
+  }
 }

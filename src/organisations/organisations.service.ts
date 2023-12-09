@@ -28,6 +28,32 @@ export class OrganisationsService {
     });
   }
 
+  searchOrganisation(searchQuery: string, type: OrgType) {
+    const searchObject = {};
+    if (searchQuery && searchQuery !== '') {
+      searchObject['OR'] = [
+        {
+          name: {
+            contains: searchQuery,
+            mode: 'insensitive',
+          },
+        },
+        {
+          location: {
+            contains: searchQuery,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+    if (type) {
+      searchObject['AND'] = [{ type }];
+    }
+    return this.prisma.organization.findMany({
+      where: searchObject,
+    });
+  }
+
   findAcademicOrganisations() {
     return this.prisma.organization.findMany({
       where: {
