@@ -4,13 +4,14 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { CreatePOCUserDto, CreateUserDto } from './dto/create-user.dto';
+import { CreateStudentUserDto, CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { generateRandomString } from './users.utils';
 import * as bcrypt from 'bcrypt';
 import { MailerService } from 'src/mailer/mailer.service';
 import { JwtService } from '@nestjs/jwt';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -33,6 +34,15 @@ export class UsersService {
       };
     });
   }
+
+  public getUserConnectList<T>(idList: Array<T>) {
+    return idList.map((id) => {
+      return {
+        userId: id,
+      };
+    });
+  }
+
   async createUser(createUserDto: CreateUserDto) {
     const { password1, password, firstName, lastName, orgId, role, email } =
       createUserDto;
@@ -73,32 +83,43 @@ export class UsersService {
       else throw new InternalServerErrorException('Cannot send email');
     }
   }
-  async createPOCUser(createPOCUserDto: CreatePOCUserDto) {
-    const password = generateRandomString(8);
-    const hashedPassword = await bcrypt.hash(password, 10);
-    let user;
-    const pocUser = {
-      ...createPOCUserDto,
-      password: hashedPassword,
-      isPoc: true,
-      isVerified: true,
-      isEmailVerified: true,
-    };
-    try {
-      user = this.prisma.user.create({
-        data: pocUser,
-      });
-    } catch (error) {
-      throw new ForbiddenException(error);
-    } finally {
-      const result = await this.mailerService.sendPlatformInvitation({
-        email: createPOCUserDto.email,
-        firstName: createPOCUserDto.firstName,
-        lastName: createPOCUserDto.lastName,
-        password,
-      });
-      if (result.success) return user;
-      else throw new InternalServerErrorException('Cannot send email');
+
+  async createSupervisee(
+    createStudentUserDto: CreateStudentUserDto,
+    orgId: number,
+  ) {
+    const exist = await this.findEmail(createStudentUserDto.email);
+    if (!exist) {
+      const password = generateRandomString(8);
+      const hashedPassword = await bcrypt.hash(password, 10);
+      let user;
+      const studentUser = {
+        ...createStudentUserDto,
+        role: Role.ACADEMIC_STUDENT,
+        orgId,
+        password: hashedPassword,
+        isVerified: true,
+        isEmailVerified: false,
+      };
+      try {
+        user = this.prisma.user.create({
+          data: studentUser,
+        });
+      } catch (error) {
+        throw new ForbiddenException(error);
+      } finally {
+        const result = await this.mailerService.sendPlatformInvitation({
+          email: createStudentUserDto.email,
+          firstName: createStudentUserDto.firstName,
+          lastName: createStudentUserDto.lastName,
+          password,
+        });
+        if (result.success) return user;
+        else throw new InternalServerErrorException('Cannot send email');
+      }
+    } else {
+      console.log(exist);
+      throw new BadRequestException('Cannot create student with this email');
     }
   }
 
@@ -148,6 +169,60 @@ export class UsersService {
     });
   }
 
+  verifyUser(memberIds: Array<number>) {
+    return Promise.all(
+      memberIds.map((memberId) => {
+        return this.updateVerificationStatus(memberId, {
+          isVerified: true,
+        });
+      }),
+    );
+  }
+
+  makeUserPOC(memberIds: Array<number>) {
+    return Promise.all(
+      memberIds.map((memberId) => {
+        return this.updateVerificationStatus(memberId, {
+          isPoc: true,
+        });
+      }),
+    );
+  }
+
+  async addSuperviseeSupervisorRelation(
+    supervisorId: number,
+    studentIds: Array<number>,
+  ) {
+    await this.prisma.user.update({
+      where: { userId: supervisorId },
+      data: {
+        supervisees: {
+          connect: this.getUserConnectList<number>(studentIds),
+        },
+      },
+      include: {
+        supervisees: true,
+        supervisors: true,
+      },
+    });
+    return Promise.all(
+      studentIds.map((studentId) => {
+        return this.prisma.user.update({
+          where: { userId: studentId },
+          data: {
+            supervisors: {
+              connect: this.getUserConnectList<number>([supervisorId]),
+            },
+          },
+          include: {
+            supervisors: true,
+            supervisees: true,
+          },
+        });
+      }),
+    );
+  }
+
   async update(userId: number, updateUserDto: UpdateUserDto) {
     if (updateUserDto.password1) {
       const hashedPassword = await bcrypt.hash(updateUserDto.password1, 10);
@@ -160,13 +235,9 @@ export class UsersService {
     });
   }
 
-  async updateVerificationStatus(
-    userId: number,
-    orgId: number,
-    updateUserDto: UpdateUserDto,
-  ) {
+  async updateVerificationStatus(userId: number, updateUserDto: UpdateUserDto) {
     return this.prisma.user.update({
-      where: { userId, orgId },
+      where: { userId },
       data: updateUserDto,
     });
   }

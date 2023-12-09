@@ -8,9 +8,14 @@ import {
   Delete,
   ParseIntPipe,
   Req,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreatePOCUserDto, CreateUserDto } from './dto/create-user.dto';
+import {
+  AddSuperviseesDto,
+  CreateStudentUserDto,
+  CreateUserDto,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
   ApiTags,
@@ -20,15 +25,20 @@ import {
 } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 import { Roles } from 'src/auth/decorators/role.decorator';
-import { Role } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { Request } from 'express-serve-static-core';
 import { AddAreaofInterestDto } from './dto/add-area-of-interest.dto';
+import { VerifyUserDto } from 'src/organisations/dto/verify-member.dto';
 
 @Controller('users')
 @ApiTags('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  private mapResponseToUserEntity(users: Array<User>) {
+    return users.map((user) => new UserEntity(user));
+  }
 
   @Post()
   @Public()
@@ -37,14 +47,41 @@ export class UsersController {
     return new UserEntity(await this.usersService.createUser(createUserDto));
   }
 
-  @Post('org_rep')
+  @Post('create_supervisee')
   @ApiBearerAuth()
-  @Roles([Role.ADMIN])
-  @ApiCreatedResponse({ type: UserEntity })
-  async createPOCUser(@Body() createPOCUserDto: CreatePOCUserDto) {
-    return new UserEntity(
-      await this.usersService.createPOCUser(createPOCUserDto),
+  @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.ACADEMIC_USER])
+  async createStudentUser(
+    @Req() req: Request,
+    @Body() createStudentUserDto: CreateStudentUserDto,
+  ) {
+    const { userId } = req.user;
+    const supervisor = await this.usersService.findOne(userId);
+    const supervisee = await this.usersService.createSupervisee(
+      createStudentUserDto,
+      supervisor.orgId,
     );
+    const result = await this.usersService.addSuperviseeSupervisorRelation(
+      userId,
+      [supervisee.userId],
+    );
+    return result;
+  }
+
+  @Post('add_supervisees')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.ACADEMIC_USER])
+  async addSupervisees(
+    @Req() req: Request,
+    @Body() addSuperviseesDto: AddSuperviseesDto,
+  ) {
+    const { userId } = req.user;
+    const supervisor = await this.usersService.findOne(userId);
+    const { supervisees } = addSuperviseesDto;
+    const result = await this.usersService.addSuperviseeSupervisorRelation(
+      supervisor.userId,
+      supervisees,
+    );
+    return result;
   }
 
   @Get()
@@ -67,7 +104,6 @@ export class UsersController {
     'ACADEMIC_STUDENT',
   ])
   async findUserAreasOfInterest(@Req() req: Request) {
-    console.log(req.user);
     const { userId } = req.user;
     return new UserEntity(await this.usersService.findAreasOfInterest(userId));
   }
@@ -109,6 +145,32 @@ export class UsersController {
   async getUserDetails(@Req() req: Request) {
     const { userId } = req.user;
     return new UserEntity(await this.usersService.findOne(userId));
+  }
+
+  @Post('verify_user')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  @ApiOkResponse({ type: Boolean })
+  async verifyOrganizationMembers(@Body() verifyUserDto: VerifyUserDto) {
+    const users = await this.usersService.verifyUser(verifyUserDto.memberIds);
+    if (users.length === verifyUserDto.memberIds.length) {
+      return this.mapResponseToUserEntity(users);
+    }
+    throw new InternalServerErrorException('Error in verifying member IDs');
+  }
+
+  @Post('make_representative')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  @ApiOkResponse({ type: Boolean })
+  async makeUserRepresentative(@Body() verifyUserDto: VerifyUserDto) {
+    const users = await this.usersService.makeUserPOC(verifyUserDto.memberIds);
+    if (users.length === verifyUserDto.memberIds.length) {
+      return this.mapResponseToUserEntity(users);
+    }
+    throw new InternalServerErrorException(
+      'Error in making users representative',
+    );
   }
 
   @Get(':id')

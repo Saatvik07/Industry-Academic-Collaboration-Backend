@@ -1,16 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
 } from 'class-validator';
 import { PasswordsDto } from 'src/auth/dto/passwords.dto';
 
-export class CreatePOCUserDto {
+export class IStudentInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export class AddSuperviseesDto {
+  @IsArray()
+  @Type(() => Number)
+  @ApiProperty()
+  supervisees: Array<number>;
+}
+
+export class CreateStudentUserDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
@@ -26,23 +42,6 @@ export class CreatePOCUserDto {
   @IsEmail()
   @ApiProperty()
   email: string;
-
-  @IsEnum(Role)
-  @IsNotEmpty()
-  @ApiProperty()
-  role: Role;
-
-  @IsNumber()
-  @ApiProperty()
-  orgId: number;
-
-  @IsBoolean()
-  @ApiProperty()
-  isEmailVerified?: boolean;
-
-  @IsBoolean()
-  @ApiProperty()
-  isVerified?: boolean;
 }
 
 export class CreateUserDto extends PasswordsDto {
@@ -71,6 +70,16 @@ export class CreateUserDto extends PasswordsDto {
   @ApiProperty()
   orgId: number;
 
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  website?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  department?: string;
+
   @IsBoolean()
   @ApiProperty()
   isEmailVerified?: boolean;
@@ -78,4 +87,13 @@ export class CreateUserDto extends PasswordsDto {
   @IsBoolean()
   @ApiProperty()
   isVerified?: boolean;
+
+  @IsBoolean()
+  @ApiProperty()
+  isPoc?: boolean;
+
+  @IsArray()
+  @Type(() => Number)
+  @ApiProperty()
+  areasofInterest?: Array<number>;
 }

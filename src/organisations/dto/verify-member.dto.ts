@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsArray } from 'class-validator';
-export class VerifyMemberDto {
+export class VerifyUserDto {
   @IsArray()
+  @Type(() => Number)
   @ApiProperty()
   memberIds: Array<number>;
 }

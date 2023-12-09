@@ -137,16 +137,6 @@ export class OrganisationsService {
     });
   }
 
-  verifyOrganizationMembers(memberIds: Array<number>, orgId: number) {
-    return Promise.all(
-      memberIds.map((memberId) => {
-        return this.userService.updateVerificationStatus(memberId, orgId, {
-          isVerified: true,
-        });
-      }),
-    );
-  }
-
   findOne(id: number) {
     return this.prisma.organization.findUnique({ where: { id } });
   }
