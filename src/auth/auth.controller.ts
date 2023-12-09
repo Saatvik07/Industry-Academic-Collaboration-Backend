@@ -42,6 +42,9 @@ export class AuthController {
     const tokens = await this.authService.login(email, password);
     response
       .cookie(this.refreshCookieName, tokens.refreshToken, {
+        path: '/',
+        sameSite: 'none',
+        secure: true,
         httpOnly: true,
       })
       .json({
