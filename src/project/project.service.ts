@@ -162,12 +162,31 @@ export class ProjectService {
   }
 
   findAll() {
-    return this.prisma.project.findMany();
+    return this.prisma.project.findMany({
+      include: {
+        industryOrg: true,
+        academicOrg: true,
+        academicSupervisor: true,
+        industrySupervisor: true,
+        academicUsers: true,
+        industryUsers: true,
+        areaOfInterest: true,
+      },
+    });
   }
 
   findOne(id: number) {
     return this.prisma.project.findUnique({
       where: { id },
+      include: {
+        industryOrg: true,
+        academicOrg: true,
+        academicSupervisor: true,
+        industrySupervisor: true,
+        academicUsers: true,
+        industryUsers: true,
+        areaOfInterest: true,
+      },
     });
   }
 
