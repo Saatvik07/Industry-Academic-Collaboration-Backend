@@ -249,6 +249,40 @@ export class UsersService {
     });
   }
 
+  async getPotentialCollaborators(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      include: {
+        areaOfInterest: true,
+      },
+    });
+    const areasofInterest = user.areaOfInterest.map((aoi) => aoi.id);
+
+    if (areasofInterest && areasofInterest.length) {
+      return this.prisma.user.findMany({
+        where: {
+          NOT: {
+            userId,
+          },
+          areaOfInterest: {
+            some: {
+              id: {
+                in: areasofInterest,
+              },
+            },
+          },
+        },
+        include: {
+          organization: true,
+          areaOfInterest: true,
+          academicProjects: true,
+          industryProjects: true,
+        },
+      });
+    }
+    return Promise.resolve([]);
+  }
+
   getSupervisees(userId: number) {
     return this.prisma.user.findUnique({
       where: { userId },

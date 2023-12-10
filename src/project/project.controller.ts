@@ -24,6 +24,7 @@ import { VerificationRequestDto } from './dto/verification-request.dto';
 import { VerifyProjectDto } from './dto/verify-project.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdateDraftProjectDto } from './dto/update-project.dto';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @ApiTags('project')
 @Controller('project')
@@ -68,11 +69,13 @@ export class ProjectController {
   }
 
   @Get()
+  @Public()
   findAll() {
     return this.projectService.findAll();
   }
 
   @Get(':id')
+  @Public()
   findOne(@Param('id') id: string) {
     return this.projectService.findOne(+id);
   }

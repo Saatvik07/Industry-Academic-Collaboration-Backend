@@ -258,6 +258,14 @@ export class UsersController {
     return new UserEntity(await this.usersService.findOne(id));
   }
 
+  @Get('/potential_collaborators/:id')
+  @Public()
+  @ApiOkResponse({ type: UserEntity, isArray: true })
+  async findPotentialCollaborator(@Param('id', ParseIntPipe) id: number) {
+    const users = await this.usersService.getPotentialCollaborators(id);
+    return this.mapResponseToUserEntity(users);
+  }
+
   @Patch(':id')
   @ApiBearerAuth()
   @Roles([
