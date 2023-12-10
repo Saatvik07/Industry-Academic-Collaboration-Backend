@@ -48,8 +48,17 @@ export class UsersService {
   }
 
   async createUser(createUserDto: CreateUserDto) {
-    const { password1, password, firstName, lastName, orgId, role, email } =
-      createUserDto;
+    const {
+      password1,
+      password,
+      firstName,
+      lastName,
+      orgId,
+      role,
+      email,
+      website,
+      department,
+    } = createUserDto;
     this.comparePasswords(password1, password);
     const hashedPassword = await bcrypt.hash(password1, 10);
     let user;
@@ -61,6 +70,8 @@ export class UsersService {
           orgId,
           role,
           email,
+          website,
+          department,
           password: hashedPassword,
         },
       });
