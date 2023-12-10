@@ -12,6 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { IJwtConfig } from 'src/config/interfaces/jwt-config.interface';
 import { ConfigService } from '@nestjs/config';
+import { UpdateDraftProjectDto } from './dto/update-project.dto';
 
 @Injectable()
 export class ProjectService {
@@ -27,21 +28,59 @@ export class ProjectService {
     this.jwtSecret = jwtConfig.jwtSecret;
   }
 
+  public getConnectList<T>(idList: Array<T>) {
+    return idList.map((id) => {
+      return {
+        id,
+      };
+    });
+  }
+
+  public getUserConnectList<T>(idList: Array<T>) {
+    return idList.map((id) => {
+      return {
+        userId: id,
+      };
+    });
+  }
+
   async createDraftProject(
     createDraftProject: CreateDraftProjectDto,
     userId: number,
   ) {
-    const { title, summary } = createDraftProject;
+    const {
+      title,
+      summary,
+      startDate,
+      endDate,
+      projectProposalLink,
+      areasOfInterest,
+    } = createDraftProject;
     const user = await this.userService.findOne(userId);
     return this.prisma.project.create({
       data: {
         title,
         summary,
-        academicOrgId: user.orgId,
+        startDate,
+        endDate,
+        projectProposalLink,
+        academicSupervisor: {
+          connect: {
+            userId,
+          },
+        },
+        academicOrg: {
+          connect: {
+            id: user.orgId,
+          },
+        },
         academicUsers: {
           connect: {
             userId,
           },
+        },
+        areaOfInterest: {
+          connect: this.getConnectList(areasOfInterest),
         },
       },
     });
@@ -61,7 +100,16 @@ export class ProjectService {
           id: projectId,
         },
         data: {
-          industryOrgId,
+          industryOrg: {
+            connect: {
+              id: industryOrgId,
+            },
+          },
+          industrySupervisor: {
+            connect: {
+              userId: industryUserId,
+            },
+          },
           industryUsers: {
             connect: { userId: industryUserId },
           },
@@ -125,6 +173,59 @@ export class ProjectService {
       },
       data: {
         status,
+      },
+    });
+  }
+
+  checkPermission(userId: number, projectId: number) {
+    return this.prisma.project.findUnique({
+      where: {
+        id: projectId,
+        OR: [
+          {
+            academicUsers: {
+              some: {
+                userId,
+              },
+            },
+          },
+          {
+            industryUsers: {
+              some: {
+                userId,
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  update(id: number, updateProjectDto: UpdateDraftProjectDto) {
+    return this.prisma.project.update({
+      where: { id },
+      data: updateProjectDto,
+    });
+  }
+
+  addAcademicUsers(id: number, academicUsers: Array<number>) {
+    return this.prisma.project.update({
+      where: { id },
+      data: {
+        academicUsers: {
+          connect: this.getUserConnectList(academicUsers),
+        },
+      },
+    });
+  }
+
+  addIndustryUsers(id: number, industryUsers: Array<number>) {
+    return this.prisma.project.update({
+      where: { id },
+      data: {
+        industryUsers: {
+          connect: this.getUserConnectList(industryUsers),
+        },
       },
     });
   }

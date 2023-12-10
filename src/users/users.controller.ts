@@ -51,7 +51,16 @@ export class UsersController {
   @Public()
   @ApiCreatedResponse({ type: UserEntity })
   async createUser(@Body() createUserDto: CreateUserDto) {
-    return new UserEntity(await this.usersService.createUser(createUserDto));
+    const user = await this.usersService.createUser(createUserDto);
+    if (createUserDto.areasofInterest && createUserDto.areasofInterest.length) {
+      return new UserEntity(
+        await this.usersService.addAreasOfInterest(
+          user.userId,
+          createUserDto.areasofInterest,
+        ),
+      );
+    }
+    return new UserEntity(user);
   }
 
   @Post('create_supervisee')
