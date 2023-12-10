@@ -14,7 +14,7 @@ async function bootstrap() {
   app.use(cookieParser(configService.get<string>('cookie.cookieSecret')));
   app.enableCors({
     credentials: true,
-    origin: `http://localhost:3000`,
+    origin: `https://industry-academic-collaboration.vercel.app`,
   });
 
   const config = new DocumentBuilder()
