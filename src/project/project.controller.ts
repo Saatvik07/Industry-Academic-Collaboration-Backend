@@ -6,15 +6,24 @@ import {
   Param,
   Delete,
   Req,
+  Patch,
+  ParseIntPipe,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
-import { CreateDraftProjectDto } from './dto/create-project.dto';
+import {
+  AddAcademicUserDto,
+  AddIndustryUserDto,
+  CreateDraftProjectDto,
+} from './dto/create-project.dto';
 
+import { Roles } from 'src/auth/decorators/role.decorator';
+import { Role } from '@prisma/client';
 import { Request } from 'express-serve-static-core';
 import { VerificationRequestDto } from './dto/verification-request.dto';
 import { VerifyProjectDto } from './dto/verify-project.dto';
-import { Public } from 'src/auth/decorators/public.decorator';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UpdateDraftProjectDto } from './dto/update-project.dto';
 
 @ApiTags('project')
 @Controller('project')
@@ -22,7 +31,8 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post('/createDraft')
-  @Public()
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.ACADEMIC_USER])
   create(
     @Body() createDraftProjectDto: CreateDraftProjectDto,
     @Req() req: Request,
@@ -35,7 +45,8 @@ export class ProjectController {
   }
 
   @Post('/sendVerificationRequest')
-  @Public()
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.ACADEMIC_USER])
   sendVerificationRequest(
     @Body() verificationRequestDto: VerificationRequestDto,
     @Req() req: Request,
@@ -50,7 +61,8 @@ export class ProjectController {
   }
 
   @Post('/verify')
-  @Public()
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN, Role.INDUSTRY_USER, Role.INDUSTRY_REP])
   verifyProject(@Body() verifyProjctDto: VerifyProjectDto) {
     return this.projectService.verifyProject(verifyProjctDto.verificationToken);
   }
@@ -65,13 +77,74 @@ export class ProjectController {
     return this.projectService.findOne(+id);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-  //   return this.projectService.update(+id, updateProjectDto);
-  // }
+  @Post('/add_academic_users/:id')
+  @ApiBearerAuth()
+  @Roles([
+    Role.ADMIN,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+    Role.ACADEMIC_REP,
+    Role.ACADEMIC_USER,
+    Role.ACADEMIC_STUDENT,
+  ])
+  addAcademicUsers(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() addAcademicUserDto: AddAcademicUserDto,
+  ) {
+    return this.projectService.addAcademicUsers(
+      id,
+      addAcademicUserDto.academicUsersId,
+    );
+  }
+
+  @Post('/add_industry_users/:id')
+  @ApiBearerAuth()
+  @Roles([
+    Role.ADMIN,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+    Role.ACADEMIC_REP,
+    Role.ACADEMIC_USER,
+    Role.ACADEMIC_STUDENT,
+  ])
+  addIndustryUsers(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() addIndustryUserDto: AddIndustryUserDto,
+    @Req() req: Request,
+  ) {
+    const { userId } = req.user;
+    if (this.projectService.checkPermission(userId, id)) {
+      return this.projectService.addIndustryUsers(
+        id,
+        addIndustryUserDto.industryUsersId,
+      );
+    }
+    throw new UnauthorizedException(
+      'User does not have access to update the project',
+    );
+  }
+
+  @Patch(':id')
+  @ApiBearerAuth()
+  @Roles([
+    Role.ADMIN,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+    Role.ACADEMIC_REP,
+    Role.ACADEMIC_USER,
+    Role.ACADEMIC_STUDENT,
+  ])
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProjectDto: UpdateDraftProjectDto,
+  ) {
+    return this.projectService.update(+id, updateProjectDto);
+  }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectService.remove(+id);
   }
 }

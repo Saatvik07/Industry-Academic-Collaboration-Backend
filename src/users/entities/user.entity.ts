@@ -99,6 +99,9 @@ export class UserEntity implements User {
   areaOfInterest?: AreaOfInterest[];
 
   @ApiProperty()
+  organization?: Organization;
+
+  @ApiProperty()
   website: string;
 
   @ApiProperty()
