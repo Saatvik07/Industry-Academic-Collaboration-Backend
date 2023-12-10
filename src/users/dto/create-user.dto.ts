@@ -93,12 +93,10 @@ export class CreateUserDto extends PasswordsDto {
   orgId: number;
 
   @IsString()
-  @IsOptional()
   @ApiProperty()
   website?: string;
 
   @IsString()
-  @IsOptional()
   @ApiProperty()
   department?: string;
 

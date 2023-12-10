@@ -212,7 +212,15 @@ export class UsersController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @Roles([Role.ADMIN])
+  @Roles([
+    Role.ADMIN,
+    Role.ACADEMIC_REP,
+    Role.ACADEMIC_USER,
+    Role.INDUSTRY_REP,
+    Role.INDUSTRY_USER,
+    Role.INDUSTRY_REP,
+    Role.ACADEMIC_STUDENT,
+  ])
   @ApiCreatedResponse({ type: UserEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
