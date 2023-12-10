@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
@@ -21,13 +20,13 @@ export class CreateDraftProjectDto {
   @ApiProperty()
   summary: string;
 
-  @IsNumber()
+  @IsString()
   @ApiProperty()
-  startDate: number;
+  startDate: string;
 
-  @IsNumber()
+  @IsString()
   @ApiProperty()
-  endDate?: number;
+  endDate?: string;
 
   @IsUrl()
   @IsOptional()

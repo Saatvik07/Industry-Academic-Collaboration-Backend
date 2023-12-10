@@ -86,8 +86,8 @@ model Project {
   id                   Int              @id @default(autoincrement())
   title                String
   summary              String
-  startDate            Int?
-  endDate              Int?
+  startDate            String?
+  endDate              String?
   industryOrg          Organization?    @relation("ProjectIndustryOrg", fields: [industryOrgId], references: [id])
   industryOrgId        Int?
   academicOrg          Organization?    @relation("ProjectAcademicOrg", fields: [academicOrgId], references: [id])

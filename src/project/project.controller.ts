@@ -22,8 +22,7 @@ import { Role } from '@prisma/client';
 import { Request } from 'express-serve-static-core';
 import { VerificationRequestDto } from './dto/verification-request.dto';
 import { VerifyProjectDto } from './dto/verify-project.dto';
-import { Public } from 'src/auth/decorators/public.decorator';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdateDraftProjectDto } from './dto/update-project.dto';
 
 @ApiTags('project')
@@ -32,6 +31,7 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post('/createDraft')
+  @ApiBearerAuth()
   @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.ACADEMIC_USER])
   create(
     @Body() createDraftProjectDto: CreateDraftProjectDto,
@@ -45,6 +45,7 @@ export class ProjectController {
   }
 
   @Post('/sendVerificationRequest')
+  @ApiBearerAuth()
   @Roles([Role.ADMIN, Role.ACADEMIC_REP, Role.ACADEMIC_USER])
   sendVerificationRequest(
     @Body() verificationRequestDto: VerificationRequestDto,
@@ -60,8 +61,8 @@ export class ProjectController {
   }
 
   @Post('/verify')
+  @ApiBearerAuth()
   @Roles([Role.ADMIN, Role.INDUSTRY_USER, Role.INDUSTRY_REP])
-  @Public()
   verifyProject(@Body() verifyProjctDto: VerifyProjectDto) {
     return this.projectService.verifyProject(verifyProjctDto.verificationToken);
   }
@@ -77,6 +78,7 @@ export class ProjectController {
   }
 
   @Post('/add_academic_users/:id')
+  @ApiBearerAuth()
   @Roles([
     Role.ADMIN,
     Role.INDUSTRY_USER,
@@ -96,6 +98,7 @@ export class ProjectController {
   }
 
   @Post('/add_industry_users/:id')
+  @ApiBearerAuth()
   @Roles([
     Role.ADMIN,
     Role.INDUSTRY_USER,
@@ -122,6 +125,7 @@ export class ProjectController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
   @Roles([
     Role.ADMIN,
     Role.INDUSTRY_USER,
@@ -138,6 +142,8 @@ export class ProjectController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @Roles([Role.ADMIN])
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectService.remove(+id);
   }
