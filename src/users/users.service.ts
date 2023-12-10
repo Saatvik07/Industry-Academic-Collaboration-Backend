@@ -138,7 +138,12 @@ export class UsersService {
   }
 
   findAll() {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({
+      include: {
+        organization: true,
+        areaOfInterest: true,
+      },
+    });
   }
 
   findOne(userId: number) {
@@ -146,6 +151,7 @@ export class UsersService {
       where: { userId },
       include: {
         organization: true,
+        areaOfInterest: true,
       },
     });
   }
@@ -327,6 +333,18 @@ export class UsersService {
       updateUserDto.password = hashedPassword;
       delete updateUserDto.password1;
     }
+    if (updateUserDto.areasofInterest && updateUserDto.areasofInterest.length) {
+      await this.prisma.user.update({
+        where: { userId },
+        data: {
+          areaOfInterest: {
+            connect: this.getConnectList(updateUserDto.areasofInterest),
+          },
+        },
+      });
+      delete updateUserDto.areasofInterest;
+    }
+
     return this.prisma.user.update({
       where: { userId },
       data: updateUserDto,

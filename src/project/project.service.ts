@@ -121,9 +121,14 @@ export class ProjectService {
     } catch (error) {
       throw new ForbiddenException(error);
     } finally {
-      const projectVerifactionToken = this.jwtService.sign({
-        projectId,
-      });
+      const projectVerifactionToken = this.jwtService.sign(
+        {
+          projectId,
+        },
+        {
+          secret: this.jwtSecret,
+        },
+      );
       const result = await this.mailerService.sendProjectVerficationEmail(
         {
           firstName: industryUser.firstName,
