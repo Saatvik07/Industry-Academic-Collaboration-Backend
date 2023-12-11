@@ -80,7 +80,7 @@ export class MailerService {
     const html = this.templates.confirmation({
       firstName,
       lastName,
-      url: `https://${this.domain}/auth/confirm/${token}`,
+      url: `${this.domain}/auth/confirm/${token}`,
     });
     return this.sendEmail(
       email,
@@ -96,7 +96,7 @@ export class MailerService {
     const html = this.templates.resetPassword({
       firstName,
       lastName,
-      url: `https://${this.domain}/auth/reset-password/${token}`,
+      url: `${this.domain}/auth/reset-password/${token}`,
     });
     return this.sendEmail(
       email,
@@ -115,7 +115,7 @@ export class MailerService {
       lastName,
       password,
       email,
-      url: `https://${this.domain}/login`,
+      url: `${this.domain}/login`,
     });
     return this.sendEmail(
       email,
@@ -146,7 +146,7 @@ export class MailerService {
       inviterLastName,
       projectName,
       email,
-      url: `https://${this.domain}/projectVerification/${token}`,
+      url: `${this.domain}/projectVerification/${token}`,
     });
     return this.sendEmail(
       email,
