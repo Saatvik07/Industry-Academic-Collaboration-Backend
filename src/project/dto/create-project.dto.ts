@@ -36,6 +36,11 @@ export class CreateDraftProjectDto {
   @IsArray()
   @ApiProperty()
   areasOfInterest: Array<number>;
+
+  @IsArray()
+  @ApiProperty()
+  @IsOptional()
+  progressUpdates?: Array<string>;
 }
 
 export class AddAcademicUserDto {
